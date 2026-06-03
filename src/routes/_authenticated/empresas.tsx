@@ -108,7 +108,7 @@ function EmpresasPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {memberships.map((m) => {
+        {items.map((m: any) => {
           const canDelete = m.role === "admin";
           return (
             <div key={m.company_id} className="rounded-xl border border-border bg-card p-5">

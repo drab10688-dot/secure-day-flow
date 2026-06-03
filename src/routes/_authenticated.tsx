@@ -157,29 +157,32 @@ function AuthedLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
           <div className="flex items-center gap-3">
-            {memberships.length > 1 ? (
-              <Select value={currentCompanyId ?? memberships[0]?.company_id ?? ""} onValueChange={setCurrentCompanyId}>
-                <SelectTrigger className="w-[260px]">
+            {companyOptions.length > 1 ? (
+              <Select value={currentCompanyId ?? companyOptions[0]?.id ?? ""} onValueChange={setCurrentCompanyId}>
+                <SelectTrigger className="w-[280px]">
                   <SelectValue placeholder="Selecciona empresa" />
                 </SelectTrigger>
                 <SelectContent>
-                  {memberships.map((m) => (
-                    <SelectItem key={m.company_id} value={m.company_id}>
-                      {m.companies?.name ?? "Sin nombre"} · {m.role}
+                  {companyOptions.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name} · {c.role}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            ) : (
-              <span className="text-sm font-medium">
-                {memberships[0]?.companies?.name ?? ""}
+            ) : companyOptions.length === 1 ? (
+              <span className="text-sm font-medium">{companyOptions[0].name}</span>
+            ) : isSuperAdmin ? (
+              <span className="text-sm text-muted-foreground">
+                Aún no hay empresas. Crea una en <Link to="/empresas" className="text-primary underline">Empresas</Link>.
+              </span>
+            ) : null}
+            {(isSuperAdmin || currentRole) && (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium capitalize text-primary">
+                {isSuperAdmin ? "super-admin" : currentRole}
               </span>
             )}
-            {currentRole && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground capitalize">
-                {currentRole}
-              </span>
-            )}
+
           </div>
           <nav className="flex gap-3 md:hidden">
             <Link to={isWorker ? "/jornada" : "/dashboard"} className="text-sm text-primary">Inicio</Link>

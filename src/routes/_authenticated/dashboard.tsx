@@ -11,6 +11,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  const { user } = useAuth();
   const { currentCompanyId, memberships } = useCompany();
 
   const { data: stats } = useQuery({

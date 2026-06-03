@@ -51,12 +51,20 @@ function ApprovalsPage() {
       const { data, error } = await q;
       if (error) throw error;
       return Promise.all(((data ?? []) as any[]).map(async (shift) => {
-        if (!shift.selfie_path) return shift;
-        const { data: signed } = await supabase.storage.from("shift-selfies").createSignedUrl(shift.selfie_path, 60 * 10);
-        return { ...shift, selfie_url: signed?.signedUrl ?? shift.selfie_url ?? null };
+        const paths: string[] = Array.from(new Set([
+          ...((shift.photo_paths as string[]) ?? []),
+          ...(shift.selfie_path ? [shift.selfie_path] : []),
+        ]));
+        const urls = await Promise.all(paths.map(async (p) => {
+          const { data: signed } = await supabase.storage.from("shift-selfies").createSignedUrl(p, 60 * 10);
+          return signed?.signedUrl ?? null;
+        }));
+        const photo_urls = urls.filter(Boolean) as string[];
+        return { ...shift, photo_urls, selfie_url: photo_urls[0] ?? shift.selfie_url ?? null };
       }));
     },
   });
+
 
   const profilesIds = Array.from(new Set((shifts ?? []).map((s) => s.user_id)));
   const { data: profiles } = useQuery({
@@ -161,6 +169,16 @@ function ApprovalsPage() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
+                {(s.photo_urls ?? []).length > 0 && (
+                  <div className={`grid gap-2 ${s.photo_urls.length === 1 ? "" : "grid-cols-2 sm:grid-cols-3"}`}>
+                    {s.photo_urls.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-lg border border-border bg-muted">
+                        <img src={url} alt={`Evidencia ${i + 1}`} className="h-full w-full max-h-80 object-contain bg-black/5 transition group-hover:scale-[1.02]" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 {s.latitude && s.longitude && (
                   <a
                     href={`https://maps.google.com/?q=${s.latitude},${s.longitude}`}

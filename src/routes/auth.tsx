@@ -81,20 +81,53 @@ function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [busy, setBusy] = useState(false);
+
+  const { data: companies = [] } = useQuery({
+    queryKey: ["public-companies"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id,name,nit")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!companyId) {
+      toast.error("Selecciona una empresa");
+      return;
+    }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email, password,
       options: {
         emailRedirectTo: window.location.origin,
         data: { full_name: name },
       },
     });
+    if (error) {
+      setBusy(false);
+      toast.error(error.message);
+      return;
+    }
+    const uid = data.user?.id;
+    if (uid) {
+      const { error: memErr } = await supabase
+        .from("company_members")
+        .insert({ company_id: companyId, user_id: uid, role: "worker", status: "pendiente" });
+      if (memErr) {
+        setBusy(false);
+        toast.error("Cuenta creada pero no se pudo solicitar la empresa: " + memErr.message);
+        return;
+      }
+    }
     setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Cuenta creada. Bienvenido.");
+    toast.success("Cuenta creada. Espera la aprobación del administrador.");
   };
   return (
     <form onSubmit={submit} className="mt-4 space-y-3">
@@ -109,6 +142,20 @@ function SignupForm() {
       <div className="space-y-1">
         <Label>Contraseña</Label>
         <Input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+      </div>
+      <div className="space-y-1">
+        <Label>Empresa a la que perteneces</Label>
+        <Select value={companyId} onValueChange={setCompanyId}>
+          <SelectTrigger><SelectValue placeholder="Selecciona una empresa" /></SelectTrigger>
+          <SelectContent>
+            {companies.map((c: any) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}{c.nit ? ` · ${c.nit}` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">Un administrador deberá aprobar tu solicitud.</p>
       </div>
       <Button type="submit" className="w-full" disabled={busy}>
         {busy ? "Creando..." : "Crear cuenta"}

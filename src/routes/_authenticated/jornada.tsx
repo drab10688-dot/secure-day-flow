@@ -164,7 +164,7 @@ function ShiftPage() {
         selfie_url: pub.publicUrl,
         questionnaire: answers,
         approval_status: "pendiente",
-      });
+      } as any);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -35,6 +35,14 @@ const QUESTIONS: { key: string; label: string; expected: "si" | "no" }[] = [
   { key: "epp_estado", label: "¿Tus EPP están en buen estado y completos?", expected: "si" },
 ];
 
+async function withSignedSelfies<T extends { selfie_path?: string | null; selfie_url?: string | null }>(rows: T[]) {
+  return Promise.all(rows.map(async (row) => {
+    if (!row.selfie_path) return row;
+    const { data } = await supabase.storage.from("shift-selfies").createSignedUrl(row.selfie_path, 60 * 10);
+    return { ...row, selfie_url: data?.signedUrl ?? row.selfie_url ?? null };
+  }));
+}
+
 function ShiftPage() {
   const { user } = useAuth();
   const { currentCompanyId, currentRole } = useCompany();
@@ -107,7 +115,7 @@ function ShiftPage() {
     enabled: !!currentCompanyId && !!user,
     queryFn: async () => {
       const start = new Date(); start.setHours(0, 0, 0, 0);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("shift_approvals")
         .select("*")
         .eq("company_id", currentCompanyId!)
@@ -115,7 +123,9 @@ function ShiftPage() {
         .gte("started_at", start.toISOString())
         .order("started_at", { ascending: false })
         .limit(1);
-      return (data?.[0] ?? null) as any;
+      if (error) throw error;
+      const rows = await withSignedSelfies((data ?? []) as any[]);
+      return (rows[0] ?? null) as any;
     },
   });
 
@@ -123,13 +133,14 @@ function ShiftPage() {
     queryKey: ["shifts", currentCompanyId],
     enabled: !!currentCompanyId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("shift_approvals")
         .select("*")
         .eq("company_id", currentCompanyId!)
         .order("started_at", { ascending: false })
         .limit(20);
-      return (data ?? []) as any[];
+      if (error) throw error;
+      return withSignedSelfies((data ?? []) as any[]);
     },
   });
 
@@ -148,8 +159,6 @@ function ShiftPage() {
         upsert: false,
       });
       if (up.error) throw up.error;
-      const { data: pub } = supabase.storage.from("shift-selfies").getPublicUrl(path);
-
       const { error } = await supabase.from("shift_approvals").insert({
         company_id: currentCompanyId!,
         user_id: user!.id,
@@ -161,7 +170,7 @@ function ShiftPage() {
         latitude: coords.lat,
         longitude: coords.lng,
         location_accuracy: coords.acc,
-        selfie_url: pub.publicUrl,
+        selfie_path: path,
         questionnaire: answers,
         approval_status: "pendiente",
       } as any);

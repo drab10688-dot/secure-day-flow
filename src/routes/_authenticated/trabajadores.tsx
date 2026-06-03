@@ -29,22 +29,24 @@ function WorkersPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("company_members")
-        .select("id, user_id, role, position, created_at, profiles:profiles!company_members_user_id_fkey(full_name, document_id, phone)")
+        .select("id, user_id, role, position, created_at")
         .eq("company_id", currentCompanyId!);
-      if (error) {
-        // fallback without join if FK alias missing
-        const { data: d2 } = await supabase.from("company_members").select("*").eq("company_id", currentCompanyId!);
-        return (d2 ?? []).map((m: any) => ({ ...m, profiles: null }));
-      }
-      return data;
+      if (error) throw error;
+      const ids = (data ?? []).map((m) => m.user_id);
+      const { data: profiles } = ids.length
+        ? await supabase.from("profiles").select("id, full_name, document_id, phone").in("id", ids)
+        : { data: [] as any[] };
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (data ?? []).map((m: any) => ({ ...m, profiles: profileMap.get(m.user_id) ?? null }));
     },
   });
 
   const add = useMutation({
     mutationFn: async () => {
+      if (!form.userId.trim()) throw new Error("Ingresa el ID del usuario.");
       const { error } = await supabase.from("company_members").insert({
         company_id: currentCompanyId!,
-        user_id: form.userId,
+        user_id: form.userId.trim(),
         role: form.role as any,
         position: form.position || null,
       });

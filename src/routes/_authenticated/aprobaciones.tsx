@@ -36,7 +36,11 @@ function ApprovalsPage() {
       if (filter !== "todos") q = q.eq("approval_status" as any, filter);
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as any[];
+      return Promise.all(((data ?? []) as any[]).map(async (shift) => {
+        if (!shift.selfie_path) return shift;
+        const { data: signed } = await supabase.storage.from("shift-selfies").createSignedUrl(shift.selfie_path, 60 * 10);
+        return { ...shift, selfie_url: signed?.signedUrl ?? shift.selfie_url ?? null };
+      }));
     },
   });
 

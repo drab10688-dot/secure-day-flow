@@ -664,6 +664,10 @@ export type Database = {
       }
       shift_approvals: {
         Row: {
+          approval_notes: string | null
+          approval_status: Database["public"]["Enums"]["approval_status"]
+          approved_at: string | null
+          approved_by: string | null
           company_id: string
           conditions_ok: boolean
           created_at: string
@@ -671,12 +675,22 @@ export type Database = {
           epp_checklist: Json
           health_ok: boolean
           id: string
+          latitude: number | null
+          location_accuracy: number | null
+          longitude: number | null
           notes: string | null
+          questionnaire: Json
+          selfie_path: string | null
+          selfie_url: string | null
           signature: string
           started_at: string
           user_id: string
         }
         Insert: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           company_id: string
           conditions_ok?: boolean
           created_at?: string
@@ -684,12 +698,22 @@ export type Database = {
           epp_checklist?: Json
           health_ok?: boolean
           id?: string
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           notes?: string | null
+          questionnaire?: Json
+          selfie_path?: string | null
+          selfie_url?: string | null
           signature: string
           started_at?: string
           user_id: string
         }
         Update: {
+          approval_notes?: string | null
+          approval_status?: Database["public"]["Enums"]["approval_status"]
+          approved_at?: string | null
+          approved_by?: string | null
           company_id?: string
           conditions_ok?: boolean
           created_at?: string
@@ -697,7 +721,13 @@ export type Database = {
           epp_checklist?: Json
           health_ok?: boolean
           id?: string
+          latitude?: number | null
+          location_accuracy?: number | null
+          longitude?: number | null
           notes?: string | null
+          questionnaire?: Json
+          selfie_path?: string | null
+          selfie_url?: string | null
           signature?: string
           started_at?: string
           user_id?: string
@@ -810,6 +840,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "supervisor" | "worker"
+      approval_status: "pendiente" | "aprobado" | "rechazado"
       committee_type: "copasst" | "convivencia" | "brigada"
       compliance_status: "no_evaluado" | "cumple" | "no_cumple" | "no_aplica"
       exam_type:
@@ -953,6 +984,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "supervisor", "worker"],
+      approval_status: ["pendiente", "aprobado", "rechazado"],
       committee_type: ["copasst", "convivencia", "brigada"],
       compliance_status: ["no_evaluado", "cumple", "no_cumple", "no_aplica"],
       exam_type: [

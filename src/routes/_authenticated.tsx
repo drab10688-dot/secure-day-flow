@@ -86,7 +86,7 @@ function AuthedLayout() {
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
           <div className="flex items-center gap-3">
             {memberships.length > 0 ? (
-              <Select value={currentCompanyId ?? undefined} onValueChange={setCurrentCompanyId}>
+              <Select value={currentCompanyId ?? memberships[0]?.company_id ?? ""} onValueChange={setCurrentCompanyId}>
                 <SelectTrigger className="w-[260px]">
                   <SelectValue placeholder="Selecciona empresa" />
                 </SelectTrigger>

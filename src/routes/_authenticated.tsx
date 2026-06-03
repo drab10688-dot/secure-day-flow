@@ -74,6 +74,24 @@ function AuthedLayout() {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
   }, [loading, user, navigate]);
 
+  // Super-admin can browse every company
+  const { data: allCompanies } = useQuery({
+    queryKey: ["all-companies-super", user?.id],
+    enabled: !!user && !!isSuperAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id, name").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Auto-pick first company for super-admin if none selected
+  useEffect(() => {
+    if (isSuperAdmin && !currentCompanyId && allCompanies && allCompanies.length > 0) {
+      setCurrentCompanyId(allCompanies[0].id);
+    }
+  }, [isSuperAdmin, currentCompanyId, allCompanies, setCurrentCompanyId]);
+
   // Block workers from admin pages
   useEffect(() => {
     if (!isSuperAdmin && currentRole === "worker" && workerBlocked.includes(pathname)) {
@@ -92,6 +110,10 @@ function AuthedLayout() {
 
   const isWorker = !isSuperAdmin && currentRole === "worker";
   const nav = isWorker ? workerNav : adminNav;
+  const companyOptions = isSuperAdmin
+    ? (allCompanies ?? []).map((c) => ({ id: c.id, name: c.name, role: "super-admin" }))
+    : memberships.map((m) => ({ id: m.company_id, name: m.companies?.name ?? "Sin nombre", role: m.role }));
+
 
 
   return (

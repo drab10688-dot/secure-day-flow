@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
-import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart } from "lucide-react";
+import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
@@ -17,6 +17,7 @@ const nav: NavItem[] = [
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/trabajadores", label: "Trabajadores", icon: Users },
   { to: "/jornada", label: "Inicio de jornada", icon: ClipboardCheck, workers: true },
+  { to: "/aprobaciones", label: "Aprobaciones", icon: UserCheck },
   { to: "/autoevaluacion", label: "Autoevaluación 0312", icon: CheckSquare },
   { to: "/riesgos", label: "Matriz de riesgos", icon: ShieldAlert },
   { to: "/incidentes", label: "Incidentes", icon: AlertTriangle, workers: true },

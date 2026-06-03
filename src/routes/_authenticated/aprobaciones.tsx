@@ -51,12 +51,20 @@ function ApprovalsPage() {
       const { data, error } = await q;
       if (error) throw error;
       return Promise.all(((data ?? []) as any[]).map(async (shift) => {
-        if (!shift.selfie_path) return shift;
-        const { data: signed } = await supabase.storage.from("shift-selfies").createSignedUrl(shift.selfie_path, 60 * 10);
-        return { ...shift, selfie_url: signed?.signedUrl ?? shift.selfie_url ?? null };
+        const paths: string[] = Array.from(new Set([
+          ...((shift.photo_paths as string[]) ?? []),
+          ...(shift.selfie_path ? [shift.selfie_path] : []),
+        ]));
+        const urls = await Promise.all(paths.map(async (p) => {
+          const { data: signed } = await supabase.storage.from("shift-selfies").createSignedUrl(p, 60 * 10);
+          return signed?.signedUrl ?? null;
+        }));
+        const photo_urls = urls.filter(Boolean) as string[];
+        return { ...shift, photo_urls, selfie_url: photo_urls[0] ?? shift.selfie_url ?? null };
       }));
     },
   });
+
 
   const profilesIds = Array.from(new Set((shifts ?? []).map((s) => s.user_id)));
   const { data: profiles } = useQuery({

@@ -92,14 +92,28 @@ function AuthedLayout() {
     }
   }, [currentRole, pathname, navigate, isSuperAdmin]);
 
-  // If no company is selected, force user onto /empresas
+  // If no company is selected AND there are no companies to auto-select from, force user onto /empresas
   useEffect(() => {
     if (loading || companyLoading || superLoading) return;
     if (!user) return;
-    if (!currentCompanyId && pathname !== "/empresas") {
+    if (currentCompanyId) return;
+    // Wait for super-admin company list before deciding
+    const hasOptions = isSuperAdmin
+      ? (allCompanies?.length ?? 0) > 0
+      : memberships.length > 0;
+    if (hasOptions) return; // useCompany will auto-select; don't redirect
+    if (pathname !== "/empresas") {
       navigate({ to: "/empresas", replace: true });
     }
-  }, [loading, companyLoading, superLoading, user, currentCompanyId, pathname, navigate]);
+  }, [loading, companyLoading, superLoading, user, currentCompanyId, pathname, navigate, isSuperAdmin, allCompanies, memberships.length]);
+
+  // Super-admin: auto-select first company if none selected
+  useEffect(() => {
+    if (!isSuperAdmin || currentCompanyId) return;
+    if (allCompanies && allCompanies.length > 0) {
+      setCurrentCompanyId(allCompanies[0].id);
+    }
+  }, [isSuperAdmin, currentCompanyId, allCompanies, setCurrentCompanyId]);
 
   if (loading || !user || companyLoading || superLoading) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Cargando…</div>;

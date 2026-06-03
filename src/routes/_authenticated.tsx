@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
-import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut } from "lucide-react";
+import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
@@ -11,15 +11,24 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
 });
 
-const nav = [
-  { to: "/dashboard", label: "Panel", icon: LayoutDashboard },
+type NavItem = { to: string; label: string; icon: any; workers?: boolean };
+const nav: NavItem[] = [
+  { to: "/dashboard", label: "Panel", icon: LayoutDashboard, workers: true },
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/trabajadores", label: "Trabajadores", icon: Users },
-  { to: "/jornada", label: "Inicio de jornada", icon: ClipboardCheck },
-  { to: "/incidentes", label: "Incidentes", icon: AlertTriangle },
+  { to: "/jornada", label: "Inicio de jornada", icon: ClipboardCheck, workers: true },
+  { to: "/autoevaluacion", label: "Autoevaluación 0312", icon: CheckSquare },
   { to: "/riesgos", label: "Matriz de riesgos", icon: ShieldAlert },
-  { to: "/documentos", label: "Documentos", icon: FileText },
-] as const;
+  { to: "/incidentes", label: "Incidentes", icon: AlertTriangle, workers: true },
+  { to: "/inspecciones", label: "Inspecciones", icon: ClipboardList },
+  { to: "/capacitaciones", label: "Capacitaciones", icon: BookOpen, workers: true },
+  { to: "/epp", label: "EPP", icon: HardHat, workers: true },
+  { to: "/examenes", label: "Exámenes médicos", icon: Stethoscope, workers: true },
+  { to: "/comites", label: "Comités", icon: UsersRound },
+  { to: "/emergencias", label: "Emergencias", icon: Siren },
+  { to: "/indicadores", label: "Indicadores", icon: BarChart3 },
+  { to: "/documentos", label: "Documentos", icon: FileText, workers: true },
+];
 
 function AuthedLayout() {
   const { user, loading, signOut } = useAuth();
@@ -44,8 +53,8 @@ function AuthedLayout() {
           </div>
           <span className="font-semibold text-sidebar-foreground">SafeWork</span>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
-          {nav.map((n) => {
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+          {nav.filter((n) => currentRole === "worker" ? n.workers : true).map((n) => {
             const active = pathname === n.to;
             return (
               <Link

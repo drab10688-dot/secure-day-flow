@@ -15,10 +15,18 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTrabajadoresRouteImport } from './routes/_authenticated/trabajadores'
 import { Route as AuthenticatedRiesgosRouteImport } from './routes/_authenticated/riesgos'
 import { Route as AuthenticatedJornadaRouteImport } from './routes/_authenticated/jornada'
+import { Route as AuthenticatedInspeccionesRouteImport } from './routes/_authenticated/inspecciones'
+import { Route as AuthenticatedIndicadoresRouteImport } from './routes/_authenticated/indicadores'
 import { Route as AuthenticatedIncidentesRouteImport } from './routes/_authenticated/incidentes'
+import { Route as AuthenticatedExamenesRouteImport } from './routes/_authenticated/examenes'
+import { Route as AuthenticatedEppRouteImport } from './routes/_authenticated/epp'
 import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
+import { Route as AuthenticatedEmergenciasRouteImport } from './routes/_authenticated/emergencias'
 import { Route as AuthenticatedDocumentosRouteImport } from './routes/_authenticated/documentos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedComitesRouteImport } from './routes/_authenticated/comites'
+import { Route as AuthenticatedCapacitacionesRouteImport } from './routes/_authenticated/capacitaciones'
+import { Route as AuthenticatedAutoevaluacionRouteImport } from './routes/_authenticated/autoevaluacion'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -50,9 +58,31 @@ const AuthenticatedJornadaRoute = AuthenticatedJornadaRouteImport.update({
   path: '/jornada',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInspeccionesRoute =
+  AuthenticatedInspeccionesRouteImport.update({
+    id: '/inspecciones',
+    path: '/inspecciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedIndicadoresRoute =
+  AuthenticatedIndicadoresRouteImport.update({
+    id: '/indicadores',
+    path: '/indicadores',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedIncidentesRoute = AuthenticatedIncidentesRouteImport.update({
   id: '/incidentes',
   path: '/incidentes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedExamenesRoute = AuthenticatedExamenesRouteImport.update({
+  id: '/examenes',
+  path: '/examenes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEppRoute = AuthenticatedEppRouteImport.update({
+  id: '/epp',
+  path: '/epp',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedEmpresasRoute = AuthenticatedEmpresasRouteImport.update({
@@ -60,6 +90,12 @@ const AuthenticatedEmpresasRoute = AuthenticatedEmpresasRouteImport.update({
   path: '/empresas',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedEmergenciasRoute =
+  AuthenticatedEmergenciasRouteImport.update({
+    id: '/emergencias',
+    path: '/emergencias',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedDocumentosRoute = AuthenticatedDocumentosRouteImport.update({
   id: '/documentos',
   path: '/documentos',
@@ -70,14 +106,39 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedComitesRoute = AuthenticatedComitesRouteImport.update({
+  id: '/comites',
+  path: '/comites',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCapacitacionesRoute =
+  AuthenticatedCapacitacionesRouteImport.update({
+    id: '/capacitaciones',
+    path: '/capacitaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedAutoevaluacionRoute =
+  AuthenticatedAutoevaluacionRouteImport.update({
+    id: '/autoevaluacion',
+    path: '/autoevaluacion',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
+  '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
+  '/comites': typeof AuthenticatedComitesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
+  '/emergencias': typeof AuthenticatedEmergenciasRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
+  '/epp': typeof AuthenticatedEppRoute
+  '/examenes': typeof AuthenticatedExamenesRoute
   '/incidentes': typeof AuthenticatedIncidentesRoute
+  '/indicadores': typeof AuthenticatedIndicadoresRoute
+  '/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/jornada': typeof AuthenticatedJornadaRoute
   '/riesgos': typeof AuthenticatedRiesgosRoute
   '/trabajadores': typeof AuthenticatedTrabajadoresRoute
@@ -85,10 +146,18 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
+  '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
+  '/comites': typeof AuthenticatedComitesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
+  '/emergencias': typeof AuthenticatedEmergenciasRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
+  '/epp': typeof AuthenticatedEppRoute
+  '/examenes': typeof AuthenticatedExamenesRoute
   '/incidentes': typeof AuthenticatedIncidentesRoute
+  '/indicadores': typeof AuthenticatedIndicadoresRoute
+  '/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/jornada': typeof AuthenticatedJornadaRoute
   '/riesgos': typeof AuthenticatedRiesgosRoute
   '/trabajadores': typeof AuthenticatedTrabajadoresRoute
@@ -98,10 +167,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
+  '/_authenticated/capacitaciones': typeof AuthenticatedCapacitacionesRoute
+  '/_authenticated/comites': typeof AuthenticatedComitesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documentos': typeof AuthenticatedDocumentosRoute
+  '/_authenticated/emergencias': typeof AuthenticatedEmergenciasRoute
   '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
+  '/_authenticated/epp': typeof AuthenticatedEppRoute
+  '/_authenticated/examenes': typeof AuthenticatedExamenesRoute
   '/_authenticated/incidentes': typeof AuthenticatedIncidentesRoute
+  '/_authenticated/indicadores': typeof AuthenticatedIndicadoresRoute
+  '/_authenticated/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/_authenticated/jornada': typeof AuthenticatedJornadaRoute
   '/_authenticated/riesgos': typeof AuthenticatedRiesgosRoute
   '/_authenticated/trabajadores': typeof AuthenticatedTrabajadoresRoute
@@ -111,10 +188,18 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/autoevaluacion'
+    | '/capacitaciones'
+    | '/comites'
     | '/dashboard'
     | '/documentos'
+    | '/emergencias'
     | '/empresas'
+    | '/epp'
+    | '/examenes'
     | '/incidentes'
+    | '/indicadores'
+    | '/inspecciones'
     | '/jornada'
     | '/riesgos'
     | '/trabajadores'
@@ -122,10 +207,18 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/autoevaluacion'
+    | '/capacitaciones'
+    | '/comites'
     | '/dashboard'
     | '/documentos'
+    | '/emergencias'
     | '/empresas'
+    | '/epp'
+    | '/examenes'
     | '/incidentes'
+    | '/indicadores'
+    | '/inspecciones'
     | '/jornada'
     | '/riesgos'
     | '/trabajadores'
@@ -134,10 +227,18 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/autoevaluacion'
+    | '/_authenticated/capacitaciones'
+    | '/_authenticated/comites'
     | '/_authenticated/dashboard'
     | '/_authenticated/documentos'
+    | '/_authenticated/emergencias'
     | '/_authenticated/empresas'
+    | '/_authenticated/epp'
+    | '/_authenticated/examenes'
     | '/_authenticated/incidentes'
+    | '/_authenticated/indicadores'
+    | '/_authenticated/inspecciones'
     | '/_authenticated/jornada'
     | '/_authenticated/riesgos'
     | '/_authenticated/trabajadores'
@@ -193,6 +294,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedJornadaRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inspecciones': {
+      id: '/_authenticated/inspecciones'
+      path: '/inspecciones'
+      fullPath: '/inspecciones'
+      preLoaderRoute: typeof AuthenticatedInspeccionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/indicadores': {
+      id: '/_authenticated/indicadores'
+      path: '/indicadores'
+      fullPath: '/indicadores'
+      preLoaderRoute: typeof AuthenticatedIndicadoresRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/incidentes': {
       id: '/_authenticated/incidentes'
       path: '/incidentes'
@@ -200,11 +315,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIncidentesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/examenes': {
+      id: '/_authenticated/examenes'
+      path: '/examenes'
+      fullPath: '/examenes'
+      preLoaderRoute: typeof AuthenticatedExamenesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/epp': {
+      id: '/_authenticated/epp'
+      path: '/epp'
+      fullPath: '/epp'
+      preLoaderRoute: typeof AuthenticatedEppRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/empresas': {
       id: '/_authenticated/empresas'
       path: '/empresas'
       fullPath: '/empresas'
       preLoaderRoute: typeof AuthenticatedEmpresasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/emergencias': {
+      id: '/_authenticated/emergencias'
+      path: '/emergencias'
+      fullPath: '/emergencias'
+      preLoaderRoute: typeof AuthenticatedEmergenciasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/documentos': {
@@ -221,24 +357,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/comites': {
+      id: '/_authenticated/comites'
+      path: '/comites'
+      fullPath: '/comites'
+      preLoaderRoute: typeof AuthenticatedComitesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/capacitaciones': {
+      id: '/_authenticated/capacitaciones'
+      path: '/capacitaciones'
+      fullPath: '/capacitaciones'
+      preLoaderRoute: typeof AuthenticatedCapacitacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/autoevaluacion': {
+      id: '/_authenticated/autoevaluacion'
+      path: '/autoevaluacion'
+      fullPath: '/autoevaluacion'
+      preLoaderRoute: typeof AuthenticatedAutoevaluacionRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAutoevaluacionRoute: typeof AuthenticatedAutoevaluacionRoute
+  AuthenticatedCapacitacionesRoute: typeof AuthenticatedCapacitacionesRoute
+  AuthenticatedComitesRoute: typeof AuthenticatedComitesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentosRoute: typeof AuthenticatedDocumentosRoute
+  AuthenticatedEmergenciasRoute: typeof AuthenticatedEmergenciasRoute
   AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
+  AuthenticatedEppRoute: typeof AuthenticatedEppRoute
+  AuthenticatedExamenesRoute: typeof AuthenticatedExamenesRoute
   AuthenticatedIncidentesRoute: typeof AuthenticatedIncidentesRoute
+  AuthenticatedIndicadoresRoute: typeof AuthenticatedIndicadoresRoute
+  AuthenticatedInspeccionesRoute: typeof AuthenticatedInspeccionesRoute
   AuthenticatedJornadaRoute: typeof AuthenticatedJornadaRoute
   AuthenticatedRiesgosRoute: typeof AuthenticatedRiesgosRoute
   AuthenticatedTrabajadoresRoute: typeof AuthenticatedTrabajadoresRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAutoevaluacionRoute: AuthenticatedAutoevaluacionRoute,
+  AuthenticatedCapacitacionesRoute: AuthenticatedCapacitacionesRoute,
+  AuthenticatedComitesRoute: AuthenticatedComitesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentosRoute: AuthenticatedDocumentosRoute,
+  AuthenticatedEmergenciasRoute: AuthenticatedEmergenciasRoute,
   AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
+  AuthenticatedEppRoute: AuthenticatedEppRoute,
+  AuthenticatedExamenesRoute: AuthenticatedExamenesRoute,
   AuthenticatedIncidentesRoute: AuthenticatedIncidentesRoute,
+  AuthenticatedIndicadoresRoute: AuthenticatedIndicadoresRoute,
+  AuthenticatedInspeccionesRoute: AuthenticatedInspeccionesRoute,
   AuthenticatedJornadaRoute: AuthenticatedJornadaRoute,
   AuthenticatedRiesgosRoute: AuthenticatedRiesgosRoute,
   AuthenticatedTrabajadoresRoute: AuthenticatedTrabajadoresRoute,

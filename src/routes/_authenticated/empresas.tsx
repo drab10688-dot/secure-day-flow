@@ -23,6 +23,29 @@ function EmpresasPage() {
   const [form, setForm] = useState({ name: "", nit: "", sector: "", address: "" });
   const qc = useQueryClient();
 
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("super_admins" as any).select("user_id").eq("user_id", user!.id).maybeSingle();
+      return !!data;
+    },
+  });
+
+  const { data: allCompanies } = useQuery({
+    queryKey: ["all-companies-super", user?.id],
+    enabled: !!isSuperAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id, name, nit").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const items = isSuperAdmin
+    ? (allCompanies ?? []).map((c: any) => ({ company_id: c.id, role: "admin" as const, companies: c }))
+    : memberships;
+
   const create = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.from("companies").insert({

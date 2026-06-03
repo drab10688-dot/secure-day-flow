@@ -28,6 +28,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedComitesRouteImport } from './routes/_authenticated/comites'
 import { Route as AuthenticatedCapacitacionesRouteImport } from './routes/_authenticated/capacitaciones'
 import { Route as AuthenticatedAutoevaluacionRouteImport } from './routes/_authenticated/autoevaluacion'
+import { Route as AuthenticatedAprobacionesRouteImport } from './routes/_authenticated/aprobaciones'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -129,10 +130,17 @@ const AuthenticatedAutoevaluacionRoute =
     path: '/autoevaluacion',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAprobacionesRoute =
+  AuthenticatedAprobacionesRouteImport.update({
+    id: '/aprobaciones',
+    path: '/aprobaciones',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/comites': typeof AuthenticatedComitesRoute
@@ -153,6 +161,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/comites': typeof AuthenticatedComitesRoute
@@ -175,6 +184,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/_authenticated/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/_authenticated/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/_authenticated/comites': typeof AuthenticatedComitesRoute
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/aprobaciones'
     | '/autoevaluacion'
     | '/capacitaciones'
     | '/comites'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/aprobaciones'
     | '/autoevaluacion'
     | '/capacitaciones'
     | '/comites'
@@ -238,6 +250,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/aprobaciones'
     | '/_authenticated/autoevaluacion'
     | '/_authenticated/capacitaciones'
     | '/_authenticated/comites'
@@ -397,10 +410,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAutoevaluacionRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/aprobaciones': {
+      id: '/_authenticated/aprobaciones'
+      path: '/aprobaciones'
+      fullPath: '/aprobaciones'
+      preLoaderRoute: typeof AuthenticatedAprobacionesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAprobacionesRoute: typeof AuthenticatedAprobacionesRoute
   AuthenticatedAutoevaluacionRoute: typeof AuthenticatedAutoevaluacionRoute
   AuthenticatedCapacitacionesRoute: typeof AuthenticatedCapacitacionesRoute
   AuthenticatedComitesRoute: typeof AuthenticatedComitesRoute
@@ -420,6 +441,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAprobacionesRoute: AuthenticatedAprobacionesRoute,
   AuthenticatedAutoevaluacionRoute: AuthenticatedAutoevaluacionRoute,
   AuthenticatedCapacitacionesRoute: AuthenticatedCapacitacionesRoute,
   AuthenticatedComitesRoute: AuthenticatedComitesRoute,
@@ -450,3 +472,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

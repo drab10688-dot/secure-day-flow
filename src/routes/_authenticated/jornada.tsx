@@ -115,7 +115,7 @@ function ShiftPage() {
         .gte("started_at", start.toISOString())
         .order("started_at", { ascending: false })
         .limit(1);
-      return data?.[0] ?? null;
+      return (data?.[0] ?? null) as any;
     },
   });
 
@@ -125,11 +125,11 @@ function ShiftPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("shift_approvals")
-        .select("id, started_at, user_id, signature, approval_status, latitude, longitude, selfie_url")
+        .select("*")
         .eq("company_id", currentCompanyId!)
         .order("started_at", { ascending: false })
         .limit(20);
-      return data ?? [];
+      return (data ?? []) as any[];
     },
   });
 

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { supabase } from "@/integrations/supabase/client";
@@ -207,10 +207,25 @@ function AuthedLayout() {
 }
 
 function PendingApproval({ userId, email, pending, onSignOut }: { userId: string; email: string; pending: any[]; onSignOut: () => void }) {
-  const copy = () => {
-    navigator.clipboard.writeText(userId);
-    toast.success("ID copiado");
+  const qc = useQueryClient();
+  const { data: companies } = useQuery({
+    queryKey: ["join-companies"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id, name, nit").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const pendingIds = new Set(pending.map((p: any) => p.company_id));
+  const request = async (companyId: string) => {
+    const { error } = await supabase.from("company_members").insert({
+      company_id: companyId, user_id: userId, role: "worker" as any, status: "pendiente" as any,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Solicitud enviada — espera la aprobación del administrador");
+    qc.invalidateQueries({ queryKey: ["memberships"] });
   };
+  const copy = () => { navigator.clipboard.writeText(userId); toast.success("ID copiado"); };
   return (
     <div className="grid min-h-screen place-items-center bg-background p-6">
       <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-8 shadow-sm">
@@ -218,24 +233,51 @@ function PendingApproval({ userId, email, pending, onSignOut }: { userId: string
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Shield className="h-5 w-5" />
           </div>
-          <h1 className="text-xl font-bold">Cuenta creada</h1>
+          <h1 className="text-xl font-bold">Bienvenido</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Hola {email}. Para acceder a la plataforma tu administrador debe aprobar tu vinculación a la empresa.
+          Hola {email}. Solicita unirte a una empresa para acceder a la plataforma.
         </p>
-        <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
-          <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Tu ID de usuario</div>
-          <div className="flex items-center justify-between gap-2">
-            <code className="break-all text-sm">{userId}</code>
-            <Button size="sm" variant="outline" onClick={copy}><Copy className="h-3 w-3" /></Button>
+
+        <div className="mt-5">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Empresas disponibles</div>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {(companies ?? []).map((c: any) => {
+              const already = pendingIds.has(c.id);
+              return (
+                <div key={c.id} className="flex items-center justify-between rounded-lg border border-border p-3">
+                  <div>
+                    <div className="text-sm font-medium">{c.name}</div>
+                    {c.nit && <div className="text-xs text-muted-foreground">NIT: {c.nit}</div>}
+                  </div>
+                  <Button size="sm" variant={already ? "outline" : "default"} disabled={already} onClick={() => request(c.id)}>
+                    {already ? "Solicitado" : "Solicitar"}
+                  </Button>
+                </div>
+              );
+            })}
+            {(companies ?? []).length === 0 && (
+              <div className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                Aún no hay empresas registradas.
+              </div>
+            )}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Envía este ID a tu administrador para que te agregue.</p>
         </div>
+
         {pending.length > 0 && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
-            Tienes {pending.length} solicitud{pending.length === 1 ? "" : "es"} pendiente{pending.length === 1 ? "" : "s"} de aprobación.
+            Tienes {pending.length} solicitud{pending.length === 1 ? "" : "es"} pendiente{pending.length === 1 ? "" : "s"}.
           </div>
         )}
+
+        <details className="mt-4 text-xs text-muted-foreground">
+          <summary className="cursor-pointer">¿Tu administrador te pidió tu ID?</summary>
+          <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 p-3">
+            <code className="break-all text-xs">{userId}</code>
+            <Button size="sm" variant="outline" onClick={copy}><Copy className="h-3 w-3" /></Button>
+          </div>
+        </details>
+
         <Button variant="outline" className="mt-6 w-full" onClick={onSignOut}>
           <LogOut className="mr-2 h-4 w-4" /> Salir
         </Button>

@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTrabajadoresRouteImport } from './routes/_authenticated/trabajadores'
 import { Route as AuthenticatedRiesgosRouteImport } from './routes/_authenticated/riesgos'
+import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedJornadaRouteImport } from './routes/_authenticated/jornada'
 import { Route as AuthenticatedInspeccionesRouteImport } from './routes/_authenticated/inspecciones'
 import { Route as AuthenticatedIndicadoresRouteImport } from './routes/_authenticated/indicadores'
@@ -51,6 +52,11 @@ const AuthenticatedTrabajadoresRoute =
 const AuthenticatedRiesgosRoute = AuthenticatedRiesgosRouteImport.update({
   id: '/riesgos',
   path: '/riesgos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
+  id: '/reportes',
+  path: '/reportes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedJornadaRoute = AuthenticatedJornadaRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/indicadores': typeof AuthenticatedIndicadoresRoute
   '/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/jornada': typeof AuthenticatedJornadaRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/riesgos': typeof AuthenticatedRiesgosRoute
   '/trabajadores': typeof AuthenticatedTrabajadoresRoute
 }
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/indicadores': typeof AuthenticatedIndicadoresRoute
   '/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/jornada': typeof AuthenticatedJornadaRoute
+  '/reportes': typeof AuthenticatedReportesRoute
   '/riesgos': typeof AuthenticatedRiesgosRoute
   '/trabajadores': typeof AuthenticatedTrabajadoresRoute
 }
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/_authenticated/indicadores': typeof AuthenticatedIndicadoresRoute
   '/_authenticated/inspecciones': typeof AuthenticatedInspeccionesRoute
   '/_authenticated/jornada': typeof AuthenticatedJornadaRoute
+  '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/riesgos': typeof AuthenticatedRiesgosRoute
   '/_authenticated/trabajadores': typeof AuthenticatedTrabajadoresRoute
 }
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/indicadores'
     | '/inspecciones'
     | '/jornada'
+    | '/reportes'
     | '/riesgos'
     | '/trabajadores'
   fileRoutesByTo: FileRoutesByTo
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | '/indicadores'
     | '/inspecciones'
     | '/jornada'
+    | '/reportes'
     | '/riesgos'
     | '/trabajadores'
   id:
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/indicadores'
     | '/_authenticated/inspecciones'
     | '/_authenticated/jornada'
+    | '/_authenticated/reportes'
     | '/_authenticated/riesgos'
     | '/_authenticated/trabajadores'
   fileRoutesById: FileRoutesById
@@ -285,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/riesgos'
       fullPath: '/riesgos'
       preLoaderRoute: typeof AuthenticatedRiesgosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reportes': {
+      id: '/_authenticated/reportes'
+      path: '/reportes'
+      fullPath: '/reportes'
+      preLoaderRoute: typeof AuthenticatedReportesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/jornada': {
@@ -395,6 +414,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedIndicadoresRoute: typeof AuthenticatedIndicadoresRoute
   AuthenticatedInspeccionesRoute: typeof AuthenticatedInspeccionesRoute
   AuthenticatedJornadaRoute: typeof AuthenticatedJornadaRoute
+  AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedRiesgosRoute: typeof AuthenticatedRiesgosRoute
   AuthenticatedTrabajadoresRoute: typeof AuthenticatedTrabajadoresRoute
 }
@@ -413,6 +433,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndicadoresRoute: AuthenticatedIndicadoresRoute,
   AuthenticatedInspeccionesRoute: AuthenticatedInspeccionesRoute,
   AuthenticatedJornadaRoute: AuthenticatedJornadaRoute,
+  AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedRiesgosRoute: AuthenticatedRiesgosRoute,
   AuthenticatedTrabajadoresRoute: AuthenticatedTrabajadoresRoute,
 }

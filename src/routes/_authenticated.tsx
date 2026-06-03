@@ -53,8 +53,8 @@ function AuthedLayout() {
           </div>
           <span className="font-semibold text-sidebar-foreground">SafeWork</span>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
-          {nav.map((n) => {
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+          {nav.filter((n) => currentRole === "worker" ? n.workers : true).map((n) => {
             const active = pathname === n.to;
             return (
               <Link

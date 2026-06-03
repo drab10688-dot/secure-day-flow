@@ -23,7 +23,20 @@ function WorkersPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ userId: "", role: "worker", position: "" });
 
-  const isAdmin = currentRole === "admin" || currentRole === "supervisor";
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("super_admins" as any)
+        .select("user_id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
+  const isAdmin = !!isSuperAdmin || currentRole === "admin" || currentRole === "supervisor";
 
   const { data: workers } = useQuery({
     queryKey: ["workers", currentCompanyId],

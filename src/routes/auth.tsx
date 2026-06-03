@@ -92,7 +92,7 @@ function SignupForm() {
     });
     setBusy(false);
     if (error) toast.error(error.message);
-    else toast.success("Revisa tu email para confirmar la cuenta.");
+    else toast.success("Cuenta creada. Bienvenido.");
   };
   return (
     <form onSubmit={submit} className="mt-4 space-y-3">

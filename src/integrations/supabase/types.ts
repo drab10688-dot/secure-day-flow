@@ -718,6 +718,7 @@ export type Database = {
           location_accuracy: number | null
           longitude: number | null
           notes: string | null
+          photo_paths: string[]
           questionnaire: Json
           selfie_path: string | null
           selfie_url: string | null
@@ -741,6 +742,7 @@ export type Database = {
           location_accuracy?: number | null
           longitude?: number | null
           notes?: string | null
+          photo_paths?: string[]
           questionnaire?: Json
           selfie_path?: string | null
           selfie_url?: string | null
@@ -764,6 +766,7 @@ export type Database = {
           location_accuracy?: number | null
           longitude?: number | null
           notes?: string | null
+          photo_paths?: string[]
           questionnaire?: Json
           selfie_path?: string | null
           selfie_url?: string | null

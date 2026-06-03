@@ -60,9 +60,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     }
   }, [memberships, currentCompanyId]);
 
-  const setCurrentCompanyId = (id: string) => {
+  const setCurrentCompanyId = (id: string | null) => {
     setCurrent(id);
-    localStorage.setItem("currentCompanyId", id);
+    if (id) localStorage.setItem("currentCompanyId", id);
+    else localStorage.removeItem("currentCompanyId");
   };
 
   const currentRole = memberships.find(m => m.company_id === currentCompanyId)?.role ?? null;

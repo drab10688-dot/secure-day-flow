@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
-import { Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert } from "lucide-react";
+import { Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, Copy } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,

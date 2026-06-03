@@ -220,27 +220,36 @@ export type Database = {
       }
       company_members: {
         Row: {
+          approved_at: string | null
+          approved_by: string | null
           company_id: string
           created_at: string
           id: string
           position: string | null
           role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["membership_status"]
           user_id: string
         }
         Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
           company_id: string
           created_at?: string
           id?: string
           position?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["membership_status"]
           user_id: string
         }
         Update: {
+          approved_at?: string | null
+          approved_by?: string | null
           company_id?: string
           created_at?: string
           id?: string
           position?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["membership_status"]
           user_id?: string
         }
         Relationships: [
@@ -853,6 +862,7 @@ export type Database = {
       incident_status: "abierto" | "en_revision" | "cerrado"
       incident_type: "incidente" | "accidente" | "casi_accidente"
       inspection_status: "planeada" | "realizada" | "cerrada"
+      membership_status: "pendiente" | "aprobado" | "rechazado"
       phva_cycle: "planear" | "hacer" | "verificar" | "actuar"
       risk_level: "baja" | "media" | "alta" | "critica"
       severity_level: "baja" | "media" | "alta" | "critica"
@@ -998,6 +1008,7 @@ export const Constants = {
       incident_status: ["abierto", "en_revision", "cerrado"],
       incident_type: ["incidente", "accidente", "casi_accidente"],
       inspection_status: ["planeada", "realizada", "cerrada"],
+      membership_status: ["pendiente", "aprobado", "rechazado"],
       phva_cycle: ["planear", "hacer", "verificar", "actuar"],
       risk_level: ["baja", "media", "alta", "critica"],
       severity_level: ["baja", "media", "alta", "critica"],

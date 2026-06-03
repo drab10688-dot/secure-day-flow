@@ -602,24 +602,51 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
+          afp: string | null
+          arl: string | null
+          birth_date: string | null
+          blood_type: string | null
           created_at: string
           document_id: string | null
+          email: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          eps: string | null
           full_name: string | null
           id: string
           phone: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          afp?: string | null
+          arl?: string | null
+          birth_date?: string | null
+          blood_type?: string | null
           created_at?: string
           document_id?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          eps?: string | null
           full_name?: string | null
           id: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          afp?: string | null
+          arl?: string | null
+          birth_date?: string | null
+          blood_type?: string | null
           created_at?: string
           document_id?: string | null
+          email?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          eps?: string | null
           full_name?: string | null
           id?: string
           phone?: string | null

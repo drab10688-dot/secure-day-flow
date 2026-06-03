@@ -85,19 +85,21 @@ function AuthedLayout() {
     },
   });
 
-  // Auto-pick first company for super-admin if none selected
-  useEffect(() => {
-    if (isSuperAdmin && !currentCompanyId && allCompanies && allCompanies.length > 0) {
-      setCurrentCompanyId(allCompanies[0].id);
-    }
-  }, [isSuperAdmin, currentCompanyId, allCompanies, setCurrentCompanyId]);
-
   // Block workers from admin pages
   useEffect(() => {
     if (!isSuperAdmin && currentRole === "worker" && workerBlocked.includes(pathname)) {
       navigate({ to: "/jornada", replace: true });
     }
   }, [currentRole, pathname, navigate, isSuperAdmin]);
+
+  // If no company is selected, force user onto /empresas
+  useEffect(() => {
+    if (loading || companyLoading || superLoading) return;
+    if (!user) return;
+    if (!currentCompanyId && pathname !== "/empresas") {
+      navigate({ to: "/empresas", replace: true });
+    }
+  }, [loading, companyLoading, superLoading, user, currentCompanyId, pathname, navigate]);
 
   if (loading || !user || companyLoading || superLoading) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Cargando…</div>;
@@ -109,10 +111,14 @@ function AuthedLayout() {
   }
 
   const isWorker = !isSuperAdmin && currentRole === "worker";
-  const nav = isWorker ? workerNav : adminNav;
+  const fullNav = isWorker ? workerNav : adminNav;
+  // Until a company is selected, only show Empresas (admins) or nothing (workers)
+  const onlyEmpresasNav: NavItem[] = [{ to: "/empresas", label: "Empresas", icon: Building2 }];
+  const nav = !currentCompanyId && !isWorker ? onlyEmpresasNav : fullNav;
   const companyOptions = isSuperAdmin
     ? (allCompanies ?? []).map((c) => ({ id: c.id, name: c.name, role: "super-admin" }))
     : memberships.map((m) => ({ id: m.company_id, name: m.companies?.name ?? "Sin nombre", role: m.role }));
+
 
 
 

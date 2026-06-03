@@ -169,6 +169,16 @@ function ApprovalsPage() {
                 </p>
               </CardHeader>
               <CardContent className="space-y-3">
+                {(s.photo_urls ?? []).length > 0 && (
+                  <div className={`grid gap-2 ${s.photo_urls.length === 1 ? "" : "grid-cols-2 sm:grid-cols-3"}`}>
+                    {s.photo_urls.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noreferrer" className="group block overflow-hidden rounded-lg border border-border bg-muted">
+                        <img src={url} alt={`Evidencia ${i + 1}`} className="h-full w-full max-h-80 object-contain bg-black/5 transition group-hover:scale-[1.02]" />
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 {s.latitude && s.longitude && (
                   <a
                     href={`https://maps.google.com/?q=${s.latitude},${s.longitude}`}

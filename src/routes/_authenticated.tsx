@@ -27,6 +27,7 @@ const nav: NavItem[] = [
   { to: "/comites", label: "Comités", icon: UsersRound },
   { to: "/emergencias", label: "Emergencias", icon: Siren },
   { to: "/indicadores", label: "Indicadores", icon: BarChart3 },
+  { to: "/reportes", label: "Reportes", icon: FileBarChart },
   { to: "/documentos", label: "Documentos", icon: FileText, workers: true },
 ];
 

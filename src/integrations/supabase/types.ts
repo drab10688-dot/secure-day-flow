@@ -14,16 +14,314 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          address: string | null
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          nit: string | null
+          sector: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          nit?: string | null
+          sector?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          nit?: string | null
+          sector?: string | null
+        }
+        Relationships: []
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          position: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          position?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          position?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          category: string | null
+          company_id: string
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          uploaded_by: string
+          url: string | null
+        }
+        Insert: {
+          category?: string | null
+          company_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          uploaded_by: string
+          url?: string | null
+        }
+        Update: {
+          category?: string | null
+          company_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          uploaded_by?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incidents: {
+        Row: {
+          company_id: string
+          created_at: string
+          description: string
+          id: string
+          immediate_actions: string | null
+          location: string | null
+          occurred_at: string
+          reported_by: string
+          severity: Database["public"]["Enums"]["severity_level"]
+          status: Database["public"]["Enums"]["incident_status"]
+          type: Database["public"]["Enums"]["incident_type"]
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          description: string
+          id?: string
+          immediate_actions?: string | null
+          location?: string | null
+          occurred_at?: string
+          reported_by: string
+          severity?: Database["public"]["Enums"]["severity_level"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          type: Database["public"]["Enums"]["incident_type"]
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          description?: string
+          id?: string
+          immediate_actions?: string | null
+          location?: string | null
+          occurred_at?: string
+          reported_by?: string
+          severity?: Database["public"]["Enums"]["severity_level"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          type?: Database["public"]["Enums"]["incident_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incidents_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          full_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          full_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      risk_matrix: {
+        Row: {
+          activity: string
+          company_id: string
+          controls: string | null
+          created_at: string
+          created_by: string
+          hazard: string
+          id: string
+          process: string
+          responsible: string | null
+          risk_level: Database["public"]["Enums"]["risk_level"]
+        }
+        Insert: {
+          activity: string
+          company_id: string
+          controls?: string | null
+          created_at?: string
+          created_by: string
+          hazard: string
+          id?: string
+          process: string
+          responsible?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+        }
+        Update: {
+          activity?: string
+          company_id?: string
+          controls?: string | null
+          created_at?: string
+          created_by?: string
+          hazard?: string
+          id?: string
+          process?: string
+          responsible?: string | null
+          risk_level?: Database["public"]["Enums"]["risk_level"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_matrix_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shift_approvals: {
+        Row: {
+          company_id: string
+          conditions_ok: boolean
+          created_at: string
+          ended_at: string | null
+          epp_checklist: Json
+          health_ok: boolean
+          id: string
+          notes: string | null
+          signature: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          conditions_ok?: boolean
+          created_at?: string
+          ended_at?: string | null
+          epp_checklist?: Json
+          health_ok?: boolean
+          id?: string
+          notes?: string | null
+          signature: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          conditions_ok?: boolean
+          created_at?: string
+          ended_at?: string | null
+          epp_checklist?: Json
+          health_ok?: boolean
+          id?: string
+          notes?: string | null
+          signature?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_approvals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_company_role: {
+        Args: {
+          _company_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_company_admin: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "supervisor" | "worker"
+      incident_status: "abierto" | "en_revision" | "cerrado"
+      incident_type: "incidente" | "accidente" | "casi_accidente"
+      risk_level: "baja" | "media" | "alta" | "critica"
+      severity_level: "baja" | "media" | "alta" | "critica"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +448,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "supervisor", "worker"],
+      incident_status: ["abierto", "en_revision", "cerrado"],
+      incident_type: ["incidente", "accidente", "casi_accidente"],
+      risk_level: ["baja", "media", "alta", "critica"],
+      severity_level: ["baja", "media", "alta", "critica"],
+    },
   },
 } as const

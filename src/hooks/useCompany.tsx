@@ -17,7 +17,7 @@ interface CompanyCtx {
   memberships: Membership[];          // approved only
   pendingMemberships: Membership[];   // pending / rechazado
   currentCompanyId: string | null;
-  setCurrentCompanyId: (id: string) => void;
+  setCurrentCompanyId: (id: string | null) => void;
   currentRole: "admin" | "supervisor" | "worker" | null;
   loading: boolean;
   refetch: () => void;

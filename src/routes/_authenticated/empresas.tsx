@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
@@ -22,6 +22,29 @@ function EmpresasPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", nit: "", sector: "", address: "" });
   const qc = useQueryClient();
+
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.from("super_admins" as any).select("user_id").eq("user_id", user!.id).maybeSingle();
+      return !!data;
+    },
+  });
+
+  const { data: allCompanies } = useQuery({
+    queryKey: ["all-companies-super", user?.id],
+    enabled: !!isSuperAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id, name, nit").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const items = isSuperAdmin
+    ? (allCompanies ?? []).map((c: any) => ({ company_id: c.id, role: "admin" as const, companies: c }))
+    : memberships;
 
   const create = useMutation({
     mutationFn: async () => {
@@ -85,7 +108,7 @@ function EmpresasPage() {
       </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {memberships.map((m) => {
+        {items.map((m: any) => {
           const canDelete = m.role === "admin";
           return (
             <div key={m.company_id} className="rounded-xl border border-border bg-card p-5">
@@ -126,7 +149,7 @@ function EmpresasPage() {
             </div>
           );
         })}
-        {memberships.length === 0 && (
+        {items.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
             Aún no tienes empresas. Crea la primera para comenzar.
           </div>

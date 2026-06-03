@@ -36,11 +36,19 @@ function WorkersPage() {
         .order("status", { ascending: true });
       if (error) throw error;
       const ids = (data ?? []).map((m: any) => m.user_id);
-      const { data: profiles } = ids.length
-        ? await supabase.from("profiles").select("id, full_name, document_id, phone").in("id", ids)
-        : { data: [] as any[] };
+      const [{ data: profiles }, { data: supers }] = await Promise.all([
+        ids.length
+          ? supabase.from("profiles").select("id, full_name, document_id, phone").in("id", ids)
+          : Promise.resolve({ data: [] as any[] }),
+        ids.length
+          ? supabase.from("super_admins" as any).select("user_id").in("user_id", ids)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
       const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
-      return (data ?? []).map((m: any) => ({ ...m, profiles: profileMap.get(m.user_id) ?? null }));
+      const superSet = new Set((supers ?? []).map((s: any) => s.user_id));
+      return (data ?? [])
+        .filter((m: any) => !superSet.has(m.user_id))
+        .map((m: any) => ({ ...m, profiles: profileMap.get(m.user_id) ?? null }));
     },
   });
 

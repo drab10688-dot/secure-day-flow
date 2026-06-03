@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Clock, Camera, MapPin, RotateCcw } from "lucide-react";
+import { CheckCircle2, Clock, Camera, MapPin, RotateCcw, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/jornada")({
@@ -35,11 +35,19 @@ const QUESTIONS: { key: string; label: string; expected: "si" | "no" }[] = [
   { key: "epp_estado", label: "¿Tus EPP están en buen estado y completos?", expected: "si" },
 ];
 
-async function withSignedSelfies<T extends { selfie_path?: string | null; selfie_url?: string | null }>(rows: T[]) {
+const MAX_PHOTOS = 6;
+
+async function signPhotos<T extends { selfie_path?: string | null; selfie_url?: string | null; photo_paths?: string[] | null; photo_urls?: string[] | null }>(rows: T[]) {
   return Promise.all(rows.map(async (row) => {
-    if (!row.selfie_path) return row;
-    const { data } = await supabase.storage.from("shift-selfies").createSignedUrl(row.selfie_path, 60 * 10);
-    return { ...row, selfie_url: data?.signedUrl ?? row.selfie_url ?? null };
+    const paths = [
+      ...(row.photo_paths ?? []),
+      ...(row.selfie_path && !(row.photo_paths ?? []).includes(row.selfie_path) ? [row.selfie_path] : []),
+    ];
+    const urls = await Promise.all(paths.map(async (p) => {
+      const { data } = await supabase.storage.from("shift-selfies").createSignedUrl(p, 60 * 10);
+      return data?.signedUrl ?? null;
+    }));
+    return { ...row, photo_urls: urls.filter(Boolean) as string[] };
   }));
 }
 
@@ -56,10 +64,13 @@ function ShiftPage() {
   const [answers, setAnswers] = useState<Record<string, "si" | "no" | null>>({});
   const [coords, setCoords] = useState<{ lat: number; lng: number; acc: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
-  const [selfie, setSelfie] = useState<string | null>(null); // dataURL
+
+  // Multiple photos (dataURLs)
+  const [photos, setPhotos] = useState<string[]>([]);
   const [streaming, setStreaming] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // GPS
   const captureLocation = () => {
@@ -78,6 +89,10 @@ function ShiftPage() {
 
   // Camera
   const startCamera = async () => {
+    if (photos.length >= MAX_PHOTOS) {
+      toast.error(`Máximo ${MAX_PHOTOS} fotos`);
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
       streamRef.current = stream;
@@ -95,20 +110,35 @@ function ShiftPage() {
     streamRef.current = null;
     setStreaming(false);
   };
-  const takeSelfie = () => {
+  const takePhoto = () => {
     if (!videoRef.current) return;
     const v = videoRef.current;
     const canvas = document.createElement("canvas");
-    canvas.width = v.videoWidth || 480;
-    canvas.height = v.videoHeight || 360;
+    canvas.width = v.videoWidth || 720;
+    canvas.height = v.videoHeight || 540;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
-    setSelfie(canvas.toDataURL("image/jpeg", 0.8));
+    setPhotos((p) => [...p, canvas.toDataURL("image/jpeg", 0.85)]);
     stopCamera();
   };
-  const resetSelfie = () => { setSelfie(null); };
   useEffect(() => () => stopCamera(), []);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files) return;
+    const remaining = MAX_PHOTOS - photos.length;
+    const arr = Array.from(files).slice(0, remaining);
+    const dataUrls = await Promise.all(arr.map((f) => new Promise<string>((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result as string);
+      r.onerror = rej;
+      r.readAsDataURL(f);
+    })));
+    setPhotos((p) => [...p, ...dataUrls]);
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const removePhoto = (idx: number) => setPhotos((p) => p.filter((_, i) => i !== idx));
 
   const { data: today } = useQuery({
     queryKey: ["myShiftToday", currentCompanyId, user?.id],
@@ -124,7 +154,7 @@ function ShiftPage() {
         .order("started_at", { ascending: false })
         .limit(1);
       if (error) throw error;
-      const rows = await withSignedSelfies((data ?? []) as any[]);
+      const rows = await signPhotos((data ?? []) as any[]);
       return (rows[0] ?? null) as any;
     },
   });
@@ -140,25 +170,30 @@ function ShiftPage() {
         .order("started_at", { ascending: false })
         .limit(20);
       if (error) throw error;
-      return withSignedSelfies((data ?? []) as any[]);
+      return signPhotos((data ?? []) as any[]);
     },
   });
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!signature.trim()) throw new Error("Firma tu nombre completo.");
-      if (!selfie) throw new Error("Toma una selfie como evidencia.");
+      if (photos.length === 0) throw new Error("Adjunta al menos una foto como evidencia.");
       if (!coords) throw new Error("Captura tu ubicación GPS.");
       if (QUESTIONS.some((q) => !answers[q.key])) throw new Error("Responde todas las preguntas del cuestionario.");
 
-      // Upload selfie
-      const blob = await (await fetch(selfie)).blob();
-      const path = `${currentCompanyId}/${user!.id}/${Date.now()}.jpg`;
-      const up = await supabase.storage.from("shift-selfies").upload(path, blob, {
-        contentType: "image/jpeg",
-        upsert: false,
-      });
-      if (up.error) throw up.error;
+      // Upload all photos
+      const uploaded: string[] = [];
+      for (let i = 0; i < photos.length; i++) {
+        const blob = await (await fetch(photos[i])).blob();
+        const path = `${currentCompanyId}/${user!.id}/${Date.now()}-${i}.jpg`;
+        const up = await supabase.storage.from("shift-selfies").upload(path, blob, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
+        if (up.error) throw up.error;
+        uploaded.push(path);
+      }
+
       const { error } = await supabase.from("shift_approvals").insert({
         company_id: currentCompanyId!,
         user_id: user!.id,
@@ -170,7 +205,8 @@ function ShiftPage() {
         latitude: coords.lat,
         longitude: coords.lng,
         location_accuracy: coords.acc,
-        selfie_path: path,
+        selfie_path: uploaded[0],
+        photo_paths: uploaded,
         questionnaire: answers,
         approval_status: "pendiente",
       } as any);
@@ -178,7 +214,7 @@ function ShiftPage() {
     },
     onSuccess: () => {
       toast.success("Solicitud enviada. Espera la aprobación del supervisor.");
-      setNotes(""); setSignature(""); setEpp({}); setAnswers({}); setSelfie(null);
+      setNotes(""); setSignature(""); setEpp({}); setAnswers({}); setPhotos([]);
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -201,7 +237,7 @@ function ShiftPage() {
     <div className="grid gap-6 lg:grid-cols-2">
       <section className="rounded-xl border border-border bg-card p-6">
         <h1 className="text-xl font-bold">Solicitar inicio de jornada</h1>
-        <p className="text-sm text-muted-foreground">Completa el cuestionario, toma una selfie y envía tu ubicación. El supervisor aprobará tu inicio.</p>
+        <p className="text-sm text-muted-foreground">Adjunta fotos (selfie, EPP, área de trabajo), completa el cuestionario y envía tu ubicación. El supervisor aprobará tu inicio.</p>
 
         {today ? (
           <div className="mt-6 space-y-3">
@@ -221,34 +257,67 @@ function ShiftPage() {
                 <p className="mt-2 text-sm">Notas del supervisor: {today.approval_notes}</p>
               )}
             </div>
-            {today.selfie_url && (
-              <img src={today.selfie_url} alt="Selfie" className="h-40 w-40 rounded-lg object-cover border border-border" />
+            {(today.photo_urls ?? []).length > 0 && (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {today.photo_urls.map((url: string, i: number) => (
+                  <a key={i} href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-border">
+                    <img src={url} alt={`Evidencia ${i + 1}`} className="aspect-square w-full object-cover transition hover:scale-105" />
+                  </a>
+                ))}
+              </div>
             )}
           </div>
         ) : (
           <form onSubmit={(e) => { e.preventDefault(); submit.mutate(); }} className="mt-6 space-y-5">
-            {/* Selfie */}
+            {/* Photos */}
             <div>
-              <Label className="mb-2 block">Selfie *</Label>
-              {!selfie && !streaming && (
-                <Button type="button" variant="outline" onClick={startCamera}>
-                  <Camera className="mr-2 h-4 w-4" /> Activar cámara
-                </Button>
+              <Label className="mb-2 block">Fotos de evidencia * <span className="text-xs font-normal text-muted-foreground">({photos.length}/{MAX_PHOTOS})</span></Label>
+              <p className="mb-2 text-xs text-muted-foreground">Sube selfie, foto de tus EPP y del área de trabajo. Puedes tomar varias.</p>
+
+              {photos.length > 0 && (
+                <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {photos.map((src, i) => (
+                    <div key={i} className="relative group">
+                      <a href={src} target="_blank" rel="noreferrer">
+                        <img src={src} alt={`Foto ${i + 1}`} className="aspect-square w-full rounded-lg border border-border object-cover" />
+                      </a>
+                      <button type="button" onClick={() => removePhoto(i)}
+                        className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-destructive text-destructive-foreground shadow opacity-90 hover:opacity-100">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               )}
-              {streaming && (
+
+              {streaming ? (
                 <div className="space-y-2">
-                  <video ref={videoRef} className="w-full max-w-sm rounded-lg border border-border" muted playsInline />
+                  <video ref={videoRef} className="w-full max-w-md rounded-lg border border-border" muted playsInline />
                   <div className="flex gap-2">
-                    <Button type="button" onClick={takeSelfie}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
-                    <Button type="button" variant="outline" onClick={stopCamera}>Cancelar</Button>
+                    <Button type="button" onClick={takePhoto}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
+                    <Button type="button" variant="outline" onClick={stopCamera}><RotateCcw className="mr-2 h-4 w-4" /> Cerrar</Button>
                   </div>
                 </div>
-              )}
-              {selfie && (
-                <div className="space-y-2">
-                  <img src={selfie} alt="Selfie capturada" className="h-40 w-40 rounded-lg object-cover border border-border" />
-                  <Button type="button" variant="outline" size="sm" onClick={resetSelfie}><RotateCcw className="mr-2 h-4 w-4" /> Repetir</Button>
-                </div>
+              ) : (
+                photos.length < MAX_PHOTOS && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" onClick={startCamera}>
+                      <Camera className="mr-2 h-4 w-4" /> Tomar selfie
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
+                      <ImagePlus className="mr-2 h-4 w-4" /> Subir / tomar fotos
+                    </Button>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => handleFiles(e.target.files)}
+                    />
+                  </div>
+                )
               )}
             </div>
 
@@ -358,6 +427,9 @@ function ShiftPage() {
                   >
                     <MapPin className="mr-1 inline h-3 w-3" /> Ver ubicación
                   </a>
+                )}
+                {(s.photo_urls ?? []).length > 0 && (
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">📷 {s.photo_urls.length}</span>
                 )}
               </div>
             </li>

@@ -268,6 +268,7 @@ export type Database = {
           company_id: string
           created_at: string
           description: string | null
+          file_path: string | null
           id: string
           title: string
           uploaded_by: string
@@ -278,6 +279,7 @@ export type Database = {
           company_id: string
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           title: string
           uploaded_by: string
@@ -288,6 +290,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           description?: string | null
+          file_path?: string | null
           id?: string
           title?: string
           uploaded_by?: string

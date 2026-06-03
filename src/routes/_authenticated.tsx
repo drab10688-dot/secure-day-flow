@@ -56,28 +56,43 @@ function AuthedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const { data: isSuperAdmin, isLoading: superLoading } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("super_admins" as any)
+        .select("user_id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) return false;
+      return !!data;
+    },
+  });
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
   }, [loading, user, navigate]);
 
   // Block workers from admin pages
   useEffect(() => {
-    if (currentRole === "worker" && workerBlocked.includes(pathname)) {
+    if (!isSuperAdmin && currentRole === "worker" && workerBlocked.includes(pathname)) {
       navigate({ to: "/jornada", replace: true });
     }
-  }, [currentRole, pathname, navigate]);
+  }, [currentRole, pathname, navigate, isSuperAdmin]);
 
-  if (loading || !user || companyLoading) {
+  if (loading || !user || companyLoading || superLoading) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Cargando…</div>;
   }
 
-  // Not approved in any company yet
-  if (memberships.length === 0) {
+  // Super-admin bypasses the pending screen
+  if (!isSuperAdmin && memberships.length === 0) {
     return <PendingApproval userId={user.id} email={user.email ?? ""} pending={pendingMemberships} onSignOut={signOut} />;
   }
 
-  const isWorker = currentRole === "worker";
+  const isWorker = !isSuperAdmin && currentRole === "worker";
   const nav = isWorker ? workerNav : adminNav;
+
 
   return (
     <div className="flex min-h-screen bg-background">

@@ -1,11 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
+import { supabase } from "@/integrations/supabase/client";
 import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck, Copy } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -53,28 +56,65 @@ function AuthedLayout() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const { data: isSuperAdmin, isLoading: superLoading } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("super_admins" as any)
+        .select("user_id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) return false;
+      return !!data;
+    },
+  });
+
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
   }, [loading, user, navigate]);
 
+  // Super-admin can browse every company
+  const { data: allCompanies } = useQuery({
+    queryKey: ["all-companies-super", user?.id],
+    enabled: !!user && !!isSuperAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("companies").select("id, name").order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Auto-pick first company for super-admin if none selected
+  useEffect(() => {
+    if (isSuperAdmin && !currentCompanyId && allCompanies && allCompanies.length > 0) {
+      setCurrentCompanyId(allCompanies[0].id);
+    }
+  }, [isSuperAdmin, currentCompanyId, allCompanies, setCurrentCompanyId]);
+
   // Block workers from admin pages
   useEffect(() => {
-    if (currentRole === "worker" && workerBlocked.includes(pathname)) {
+    if (!isSuperAdmin && currentRole === "worker" && workerBlocked.includes(pathname)) {
       navigate({ to: "/jornada", replace: true });
     }
-  }, [currentRole, pathname, navigate]);
+  }, [currentRole, pathname, navigate, isSuperAdmin]);
 
-  if (loading || !user || companyLoading) {
+  if (loading || !user || companyLoading || superLoading) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Cargando…</div>;
   }
 
-  // Not approved in any company yet
-  if (memberships.length === 0) {
+  // Super-admin bypasses the pending screen
+  if (!isSuperAdmin && memberships.length === 0) {
     return <PendingApproval userId={user.id} email={user.email ?? ""} pending={pendingMemberships} onSignOut={signOut} />;
   }
 
-  const isWorker = currentRole === "worker";
+  const isWorker = !isSuperAdmin && currentRole === "worker";
   const nav = isWorker ? workerNav : adminNav;
+  const companyOptions = isSuperAdmin
+    ? (allCompanies ?? []).map((c) => ({ id: c.id, name: c.name, role: "super-admin" }))
+    : memberships.map((m) => ({ id: m.company_id, name: m.companies?.name ?? "Sin nombre", role: m.role }));
+
+
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -117,29 +157,32 @@ function AuthedLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
           <div className="flex items-center gap-3">
-            {memberships.length > 1 ? (
-              <Select value={currentCompanyId ?? memberships[0]?.company_id ?? ""} onValueChange={setCurrentCompanyId}>
-                <SelectTrigger className="w-[260px]">
+            {companyOptions.length > 1 ? (
+              <Select value={currentCompanyId ?? companyOptions[0]?.id ?? ""} onValueChange={setCurrentCompanyId}>
+                <SelectTrigger className="w-[280px]">
                   <SelectValue placeholder="Selecciona empresa" />
                 </SelectTrigger>
                 <SelectContent>
-                  {memberships.map((m) => (
-                    <SelectItem key={m.company_id} value={m.company_id}>
-                      {m.companies?.name ?? "Sin nombre"} · {m.role}
+                  {companyOptions.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name} · {c.role}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            ) : (
-              <span className="text-sm font-medium">
-                {memberships[0]?.companies?.name ?? ""}
+            ) : companyOptions.length === 1 ? (
+              <span className="text-sm font-medium">{companyOptions[0].name}</span>
+            ) : isSuperAdmin ? (
+              <span className="text-sm text-muted-foreground">
+                Aún no hay empresas. Crea una en <Link to="/empresas" className="text-primary underline">Empresas</Link>.
+              </span>
+            ) : null}
+            {(isSuperAdmin || currentRole) && (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium capitalize text-primary">
+                {isSuperAdmin ? "super-admin" : currentRole}
               </span>
             )}
-            {currentRole && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-secondary-foreground capitalize">
-                {currentRole}
-              </span>
-            )}
+
           </div>
           <nav className="flex gap-3 md:hidden">
             <Link to={isWorker ? "/jornada" : "/dashboard"} className="text-sm text-primary">Inicio</Link>

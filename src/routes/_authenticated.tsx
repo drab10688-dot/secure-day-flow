@@ -17,6 +17,7 @@ const nav: NavItem[] = [
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/trabajadores", label: "Trabajadores", icon: Users },
   { to: "/jornada", label: "Inicio de jornada", icon: ClipboardCheck, workers: true },
+  { to: "/aprobaciones", label: "Aprobaciones", icon: UserCheck },
   { to: "/autoevaluacion", label: "Autoevaluación 0312", icon: CheckSquare },
   { to: "/riesgos", label: "Matriz de riesgos", icon: ShieldAlert },
   { to: "/incidentes", label: "Incidentes", icon: AlertTriangle, workers: true },

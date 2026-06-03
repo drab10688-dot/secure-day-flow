@@ -2,39 +2,54 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
-import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck } from "lucide-react";
+import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck, Copy } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   component: AuthedLayout,
 });
 
-type NavItem = { to: string; label: string; icon: any; workers?: boolean };
-const nav: NavItem[] = [
-  { to: "/dashboard", label: "Panel", icon: LayoutDashboard, workers: true },
+type NavItem = { to: string; label: string; icon: any };
+
+// Admin / supervisor full nav
+const adminNav: NavItem[] = [
+  { to: "/dashboard", label: "Panel", icon: LayoutDashboard },
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/trabajadores", label: "Trabajadores", icon: Users },
-  { to: "/jornada", label: "Inicio de jornada", icon: ClipboardCheck, workers: true },
-  { to: "/aprobaciones", label: "Aprobaciones", icon: UserCheck },
+  { to: "/aprobaciones", label: "Aprobaciones jornada", icon: UserCheck },
   { to: "/autoevaluacion", label: "Autoevaluación 0312", icon: CheckSquare },
   { to: "/riesgos", label: "Matriz de riesgos", icon: ShieldAlert },
-  { to: "/incidentes", label: "Incidentes", icon: AlertTriangle, workers: true },
+  { to: "/incidentes", label: "Incidentes", icon: AlertTriangle },
   { to: "/inspecciones", label: "Inspecciones", icon: ClipboardList },
-  { to: "/capacitaciones", label: "Capacitaciones", icon: BookOpen, workers: true },
-  { to: "/epp", label: "EPP", icon: HardHat, workers: true },
-  { to: "/examenes", label: "Exámenes médicos", icon: Stethoscope, workers: true },
+  { to: "/capacitaciones", label: "Capacitaciones", icon: BookOpen },
+  { to: "/epp", label: "EPP", icon: HardHat },
+  { to: "/examenes", label: "Exámenes médicos", icon: Stethoscope },
   { to: "/comites", label: "Comités", icon: UsersRound },
   { to: "/emergencias", label: "Emergencias", icon: Siren },
   { to: "/indicadores", label: "Indicadores", icon: BarChart3 },
   { to: "/reportes", label: "Reportes", icon: FileBarChart },
-  { to: "/documentos", label: "Documentos", icon: FileText, workers: true },
+  { to: "/documentos", label: "Documentos", icon: FileText },
 ];
+
+// Simplified worker nav — only their workspace
+const workerNav: NavItem[] = [
+  { to: "/jornada", label: "Mi jornada", icon: ClipboardCheck },
+  { to: "/incidentes", label: "Reportar incidente", icon: AlertTriangle },
+  { to: "/capacitaciones", label: "Mis capacitaciones", icon: BookOpen },
+  { to: "/epp", label: "Mi EPP", icon: HardHat },
+  { to: "/examenes", label: "Mis exámenes", icon: Stethoscope },
+  { to: "/documentos", label: "Documentos", icon: FileText },
+];
+
+// Routes a worker is NOT allowed to load
+const workerBlocked = ["/dashboard","/empresas","/trabajadores","/aprobaciones","/autoevaluacion","/riesgos","/inspecciones","/comites","/emergencias","/indicadores","/reportes"];
 
 function AuthedLayout() {
   const { user, loading, signOut } = useAuth();
-  const { memberships, currentCompanyId, setCurrentCompanyId, currentRole } = useCompany();
+  const { memberships, pendingMemberships, currentCompanyId, setCurrentCompanyId, currentRole, loading: companyLoading } = useCompany();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -42,9 +57,24 @@ function AuthedLayout() {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
   }, [loading, user, navigate]);
 
-  if (loading || !user) {
+  // Block workers from admin pages
+  useEffect(() => {
+    if (currentRole === "worker" && workerBlocked.includes(pathname)) {
+      navigate({ to: "/jornada", replace: true });
+    }
+  }, [currentRole, pathname, navigate]);
+
+  if (loading || !user || companyLoading) {
     return <div className="grid min-h-screen place-items-center text-muted-foreground">Cargando…</div>;
   }
+
+  // Not approved in any company yet
+  if (memberships.length === 0) {
+    return <PendingApproval userId={user.id} email={user.email ?? ""} pending={pendingMemberships} onSignOut={signOut} />;
+  }
+
+  const isWorker = currentRole === "worker";
+  const nav = isWorker ? workerNav : adminNav;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -53,10 +83,12 @@ function AuthedLayout() {
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Shield className="h-4 w-4" />
           </div>
-          <span className="font-semibold text-sidebar-foreground">SafeWork</span>
+          <span className="font-semibold text-sidebar-foreground">
+            SafeWork {isWorker && <span className="text-xs text-muted-foreground">· Trabajador</span>}
+          </span>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-          {nav.filter((n) => currentRole === "worker" ? n.workers : true).map((n) => {
+          {nav.map((n) => {
             const active = pathname === n.to;
             return (
               <Link
@@ -85,7 +117,7 @@ function AuthedLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-border bg-card px-6 py-3">
           <div className="flex items-center gap-3">
-            {memberships.length > 0 ? (
+            {memberships.length > 1 ? (
               <Select value={currentCompanyId ?? memberships[0]?.company_id ?? ""} onValueChange={setCurrentCompanyId}>
                 <SelectTrigger className="w-[260px]">
                   <SelectValue placeholder="Selecciona empresa" />
@@ -99,8 +131,8 @@ function AuthedLayout() {
                 </SelectContent>
               </Select>
             ) : (
-              <span className="text-sm text-muted-foreground">
-                Aún no perteneces a ninguna empresa. Crea una en <Link to="/empresas" className="text-primary underline">Empresas</Link>.
+              <span className="text-sm font-medium">
+                {memberships[0]?.companies?.name ?? ""}
               </span>
             )}
             {currentRole && (
@@ -110,13 +142,51 @@ function AuthedLayout() {
             )}
           </div>
           <nav className="flex gap-3 md:hidden">
-            <Link to="/dashboard" className="text-sm text-primary">Panel</Link>
+            <Link to={isWorker ? "/jornada" : "/dashboard"} className="text-sm text-primary">Inicio</Link>
             <button onClick={() => signOut()} className="text-sm">Salir</button>
           </nav>
         </header>
         <main className="flex-1 p-6">
           <Outlet />
         </main>
+      </div>
+    </div>
+  );
+}
+
+function PendingApproval({ userId, email, pending, onSignOut }: { userId: string; email: string; pending: any[]; onSignOut: () => void }) {
+  const copy = () => {
+    navigator.clipboard.writeText(userId);
+    toast.success("ID copiado");
+  };
+  return (
+    <div className="grid min-h-screen place-items-center bg-background p-6">
+      <div className="w-full max-w-lg rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <Shield className="h-5 w-5" />
+          </div>
+          <h1 className="text-xl font-bold">Cuenta creada</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Hola {email}. Para acceder a la plataforma tu administrador debe aprobar tu vinculación a la empresa.
+        </p>
+        <div className="mt-6 rounded-lg border border-border bg-muted/40 p-4">
+          <div className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Tu ID de usuario</div>
+          <div className="flex items-center justify-between gap-2">
+            <code className="break-all text-sm">{userId}</code>
+            <Button size="sm" variant="outline" onClick={copy}><Copy className="h-3 w-3" /></Button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Envía este ID a tu administrador para que te agregue.</p>
+        </div>
+        {pending.length > 0 && (
+          <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200">
+            Tienes {pending.length} solicitud{pending.length === 1 ? "" : "es"} pendiente{pending.length === 1 ? "" : "s"} de aprobación.
+          </div>
+        )}
+        <Button variant="outline" className="mt-6 w-full" onClick={onSignOut}>
+          <LogOut className="mr-2 h-4 w-4" /> Salir
+        </Button>
       </div>
     </div>
   );

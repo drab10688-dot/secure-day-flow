@@ -149,7 +149,7 @@ function EmpresasPage() {
             </div>
           );
         })}
-        {memberships.length === 0 && (
+        {items.length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
             Aún no tienes empresas. Crea la primera para comenzar.
           </div>

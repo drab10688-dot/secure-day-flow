@@ -62,6 +62,20 @@ function Dashboard() {
       <h1 className="text-2xl font-bold">Panel</h1>
       <p className="text-sm text-muted-foreground">Resumen de tu Sistema SG-SST.</p>
 
+      {user && (
+        <div className="mt-4 flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs">
+          <span className="text-muted-foreground">Tu ID de usuario:</span>
+          <code className="font-mono">{user.id}</code>
+          <button
+            onClick={() => { navigator.clipboard.writeText(user.id); toast.success("Copiado"); }}
+            className="ml-auto text-primary hover:opacity-80"
+            aria-label="Copiar ID"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((i) => (
           <Link key={i.label} to={i.to} className="rounded-xl border border-border bg-card p-5 hover:border-primary transition-colors">

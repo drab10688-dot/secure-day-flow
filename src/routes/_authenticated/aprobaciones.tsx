@@ -7,7 +7,8 @@ import { useCompany } from "@/hooks/useCompany";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, XCircle, MapPin, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, XCircle, MapPin, User, ShieldCheck, ShieldAlert, HardHat, ClipboardCheck, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/aprobaciones")({
@@ -21,7 +22,20 @@ function ApprovalsPage() {
   const [filter, setFilter] = useState<"pendiente" | "aprobado" | "rechazado" | "todos">("pendiente");
   const [notesMap, setNotesMap] = useState<Record<string, string>>({});
 
-  const canApprove = currentRole === "admin" || currentRole === "supervisor";
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("super_admins" as any)
+        .select("user_id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
+
+  const canApprove = !!isSuperAdmin || currentRole === "admin" || currentRole === "supervisor";
 
   const { data: shifts } = useQuery({
     queryKey: ["pendingShifts", currentCompanyId, filter],
@@ -49,8 +63,8 @@ function ApprovalsPage() {
     queryKey: ["profilesByIds", profilesIds],
     enabled: profilesIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name").in("id", profilesIds);
-      return Object.fromEntries((data ?? []).map((p) => [p.id, p.full_name]));
+      const { data } = await supabase.from("profiles").select("id, full_name, document_id, position:phone").in("id", profilesIds);
+      return Object.fromEntries((data ?? []).map((p: any) => [p.id, p]));
     },
   });
 
@@ -77,104 +91,141 @@ function ApprovalsPage() {
   }
 
   if (!canApprove) {
-    return <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">Solo administradores y supervisores pueden aprobar inicios de jornada.</div>;
+    return (
+      <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+        Solo administradores y supervisores pueden aprobar inicios de jornada.
+      </div>
+    );
   }
+
+  const counts = {
+    pendiente: (shifts ?? []).filter(s => s.approval_status === "pendiente").length,
+    total: (shifts ?? []).length,
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Aprobaciones de jornada</h1>
-          <p className="text-sm text-muted-foreground">Revisa selfie, ubicación y cuestionario antes de aprobar.</p>
-        </div>
-        <div className="flex gap-2">
-          {(["pendiente", "aprobado", "rechazado", "todos"] as const).map((f) => (
-            <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)} className="capitalize">
-              {f}
-            </Button>
-          ))}
+      <div className="rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-6 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Aprobaciones SG-SST</h1>
+              <p className="text-sm text-muted-foreground">Inicio de jornada: selfie, ubicación, EPP y autoreporte de condiciones.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />{counts.pendiente} pendientes</Badge>
+          </div>
         </div>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {(["pendiente", "aprobado", "rechazado", "todos"] as const).map((f) => (
+          <Button key={f} size="sm" variant={filter === f ? "default" : "outline"} onClick={() => setFilter(f)} className="capitalize">
+            {f}
+          </Button>
+        ))}
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        {(shifts ?? []).map((s) => (
-          <Card key={s.id}>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-base">
-                <span className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  {profiles?.[s.user_id] || s.signature || "Trabajador"}
-                </span>
-                <span className={`rounded-full px-2 py-0.5 text-xs capitalize ${
-                  s.approval_status === "aprobado" ? "bg-success/15 text-success"
-                  : s.approval_status === "rechazado" ? "bg-destructive/15 text-destructive"
-                  : "bg-warning/15 text-warning"
-                }`}>{s.approval_status}</span>
-              </CardTitle>
-              <p className="text-xs text-muted-foreground">{new Date(s.started_at).toLocaleString()}</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {s.selfie_url && (
-                <img src={s.selfie_url} alt="Selfie" className="h-32 w-32 rounded-lg object-cover border border-border" />
-              )}
+        {(shifts ?? []).map((s) => {
+          const prof = profiles?.[s.user_id];
+          const statusColor = s.approval_status === "aprobado" ? "success"
+            : s.approval_status === "rechazado" ? "destructive" : "warning";
+          return (
+            <Card key={s.id} className="overflow-hidden border-border/80 transition hover:shadow-md">
+              <div className={`h-1 w-full ${
+                s.approval_status === "aprobado" ? "bg-success"
+                : s.approval_status === "rechazado" ? "bg-destructive" : "bg-warning"
+              }`} />
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-base">
+                  <span className="flex items-center gap-3">
+                    {s.selfie_url ? (
+                      <img src={s.selfie_url} alt="Selfie" className="h-12 w-12 rounded-full border-2 border-border object-cover" />
+                    ) : (
+                      <div className="grid h-12 w-12 place-items-center rounded-full bg-muted"><User className="h-5 w-5 text-muted-foreground" /></div>
+                    )}
+                    <span className="flex flex-col">
+                      <span className="font-semibold">{prof?.full_name || s.signature || "Trabajador"}</span>
+                      {prof?.document_id && <span className="text-xs font-normal text-muted-foreground">CC {prof.document_id}</span>}
+                    </span>
+                  </span>
+                  <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize bg-${statusColor}/15 text-${statusColor}`}>{s.approval_status}</span>
+                </CardTitle>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 pt-1">
+                  <Clock className="h-3 w-3" /> {new Date(s.started_at).toLocaleString()}
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {s.latitude && s.longitude && (
+                  <a
+                    href={`https://maps.google.com/?q=${s.latitude},${s.longitude}`}
+                    target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-2 py-1 text-xs text-primary hover:bg-muted"
+                  >
+                    <MapPin className="h-3 w-3" /> {Number(s.latitude).toFixed(5)}, {Number(s.longitude).toFixed(5)}
+                    {s.location_accuracy && <span className="text-muted-foreground">±{Math.round(s.location_accuracy)}m</span>}
+                  </a>
+                )}
 
-              {s.latitude && s.longitude && (
-                <a
-                  href={`https://maps.google.com/?q=${s.latitude},${s.longitude}`}
-                  target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-primary underline"
-                >
-                  <MapPin className="h-3 w-3" /> {Number(s.latitude).toFixed(5)}, {Number(s.longitude).toFixed(5)}
-                  {s.location_accuracy && <span className="text-xs text-muted-foreground">(±{Math.round(s.location_accuracy)}m)</span>}
-                </a>
-              )}
-
-              {s.questionnaire && Object.keys(s.questionnaire).length > 0 && (
-                <div className="space-y-1 text-xs">
-                  <div className="font-medium text-foreground">Cuestionario</div>
-                  {Object.entries(s.questionnaire).map(([k, v]) => (
-                    <div key={k} className="flex justify-between border-b border-border/50 py-1">
-                      <span className="text-muted-foreground">{k}</span>
-                      <span className="font-medium uppercase">{String(v)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="flex flex-wrap gap-2 text-xs">
-                <span className={`rounded-full px-2 py-0.5 ${s.health_ok ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
-                  Salud {s.health_ok ? "OK" : "alerta"}
-                </span>
-                <span className={`rounded-full px-2 py-0.5 ${s.conditions_ok ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
-                  Área {s.conditions_ok ? "OK" : "alerta"}
-                </span>
-              </div>
-
-              {s.notes && <p className="text-xs text-muted-foreground">Obs: {s.notes}</p>}
-
-              {s.approval_status === "pendiente" ? (
-                <div className="space-y-2 pt-2">
-                  <Textarea
-                    placeholder="Notas (opcional)"
-                    value={notesMap[s.id] ?? ""}
-                    onChange={(e) => setNotesMap({ ...notesMap, [s.id]: e.target.value })}
-                    rows={2}
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" className="flex-1" onClick={() => decide.mutate({ id: s.id, status: "aprobado" })} disabled={decide.isPending}>
-                      <CheckCircle2 className="mr-2 h-4 w-4" /> Aprobar
-                    </Button>
-                    <Button size="sm" variant="destructive" className="flex-1" onClick={() => decide.mutate({ id: s.id, status: "rechazado" })} disabled={decide.isPending}>
-                      <XCircle className="mr-2 h-4 w-4" /> Rechazar
-                    </Button>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className={`flex items-center gap-2 rounded-lg border p-2 text-xs ${s.health_ok ? "border-success/30 bg-success/5 text-success" : "border-destructive/30 bg-destructive/5 text-destructive"}`}>
+                    {s.health_ok ? <ShieldCheck className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
+                    Salud {s.health_ok ? "OK" : "alerta"}
+                  </div>
+                  <div className={`flex items-center gap-2 rounded-lg border p-2 text-xs ${s.conditions_ok ? "border-success/30 bg-success/5 text-success" : "border-destructive/30 bg-destructive/5 text-destructive"}`}>
+                    <HardHat className="h-4 w-4" />
+                    Área {s.conditions_ok ? "OK" : "alerta"}
                   </div>
                 </div>
-              ) : s.approval_notes ? (
-                <p className="text-xs text-muted-foreground border-t border-border pt-2">Notas supervisor: {s.approval_notes}</p>
-              ) : null}
-            </CardContent>
-          </Card>
-        ))}
+
+                {s.questionnaire && Object.keys(s.questionnaire).length > 0 && (
+                  <details className="rounded-lg border border-border/60 bg-muted/30 p-2 text-xs">
+                    <summary className="cursor-pointer font-medium flex items-center gap-1"><ClipboardCheck className="h-3 w-3" /> Cuestionario</summary>
+                    <div className="mt-2 space-y-1">
+                      {Object.entries(s.questionnaire).map(([k, v]) => (
+                        <div key={k} className="flex justify-between border-b border-border/40 py-1 last:border-0">
+                          <span className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</span>
+                          <span className="font-medium uppercase">{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                )}
+
+                {s.notes && <p className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">📝 {s.notes}</p>}
+
+                {s.approval_status === "pendiente" ? (
+                  <div className="space-y-2 pt-1">
+                    <Textarea
+                      placeholder="Notas del supervisor (opcional)"
+                      value={notesMap[s.id] ?? ""}
+                      onChange={(e) => setNotesMap({ ...notesMap, [s.id]: e.target.value })}
+                      rows={2}
+                      className="resize-none text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" className="flex-1" onClick={() => decide.mutate({ id: s.id, status: "aprobado" })} disabled={decide.isPending}>
+                        <CheckCircle2 className="mr-2 h-4 w-4" /> Aprobar
+                      </Button>
+                      <Button size="sm" variant="destructive" className="flex-1" onClick={() => decide.mutate({ id: s.id, status: "rechazado" })} disabled={decide.isPending}>
+                        <XCircle className="mr-2 h-4 w-4" /> Rechazar
+                      </Button>
+                    </div>
+                  </div>
+                ) : s.approval_notes ? (
+                  <p className="border-t border-border pt-2 text-xs text-muted-foreground">
+                    <span className="font-medium">Notas supervisor:</span> {s.approval_notes}
+                  </p>
+                ) : null}
+              </CardContent>
+            </Card>
+          );
+        })}
         {(shifts ?? []).length === 0 && (
           <div className="col-span-full rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
             Sin jornadas {filter !== "todos" ? `en estado ${filter}` : ""}.

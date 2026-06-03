@@ -37,9 +37,12 @@ function ExamsPage() {
     queryKey: ["medical_exams", currentCompanyId],
     enabled: !!currentCompanyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("medical_exams").select("*, profiles:user_id(full_name)").eq("company_id", currentCompanyId!).order("performed_at", { ascending: false });
+      const { data, error } = await supabase.from("medical_exams").select("*").eq("company_id", currentCompanyId!).order("performed_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const ids = (data ?? []).map((e) => e.user_id);
+      const { data: profiles } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (data ?? []).map((e: any) => ({ ...e, profiles: profileMap.get(e.user_id) ?? null }));
     },
   });
 
@@ -47,14 +50,18 @@ function ExamsPage() {
     queryKey: ["company_members_list", currentCompanyId],
     enabled: !!currentCompanyId && canEdit,
     queryFn: async () => {
-      const { data, error } = await supabase.from("company_members").select("user_id, profiles:user_id(full_name)").eq("company_id", currentCompanyId!);
+      const { data, error } = await supabase.from("company_members").select("user_id").eq("company_id", currentCompanyId!);
       if (error) throw error;
-      return data ?? [];
+      const ids = (data ?? []).map((m) => m.user_id);
+      const { data: profiles } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (data ?? []).map((m: any) => ({ ...m, profiles: profileMap.get(m.user_id) ?? null }));
     },
   });
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!form.user_id) throw new Error("Selecciona el trabajador.");
       const { error } = await supabase.from("medical_exams").insert({
         company_id: currentCompanyId!,
         user_id: form.user_id,

@@ -41,9 +41,12 @@ function EppPage() {
     queryKey: ["epp_deliveries", currentCompanyId],
     enabled: !!currentCompanyId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("epp_deliveries").select("*, epp_items(name), profiles:user_id(full_name)").eq("company_id", currentCompanyId!).order("delivered_at", { ascending: false });
+      const { data, error } = await supabase.from("epp_deliveries").select("*, epp_items(name)").eq("company_id", currentCompanyId!).order("delivered_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const ids = (data ?? []).map((d) => d.user_id);
+      const { data: profiles } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (data ?? []).map((d: any) => ({ ...d, profiles: profileMap.get(d.user_id) ?? null }));
     },
   });
 
@@ -51,9 +54,12 @@ function EppPage() {
     queryKey: ["company_members_list", currentCompanyId],
     enabled: !!currentCompanyId && canEdit,
     queryFn: async () => {
-      const { data, error } = await supabase.from("company_members").select("user_id, profiles:user_id(full_name)").eq("company_id", currentCompanyId!);
+      const { data, error } = await supabase.from("company_members").select("user_id").eq("company_id", currentCompanyId!);
       if (error) throw error;
-      return data ?? [];
+      const ids = (data ?? []).map((m) => m.user_id);
+      const { data: profiles } = ids.length ? await supabase.from("profiles").select("id, full_name").in("id", ids) : { data: [] as any[] };
+      const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
+      return (data ?? []).map((m: any) => ({ ...m, profiles: profileMap.get(m.user_id) ?? null }));
     },
   });
 
@@ -73,6 +79,8 @@ function EppPage() {
 
   const createDelivery = useMutation({
     mutationFn: async () => {
+      if (!delForm.epp_item_id) throw new Error("Selecciona el EPP.");
+      if (!delForm.user_id) throw new Error("Selecciona el trabajador.");
       const { error } = await supabase.from("epp_deliveries").insert({
         company_id: currentCompanyId!,
         epp_item_id: delForm.epp_item_id,

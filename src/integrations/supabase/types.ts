@@ -751,6 +751,24 @@ export type Database = {
           },
         ]
       }
+      super_admins: {
+        Row: {
+          created_at: string
+          singleton: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          singleton?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          singleton?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       training_attendees: {
         Row: {
           attended: boolean
@@ -846,6 +864,7 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "supervisor" | "worker"

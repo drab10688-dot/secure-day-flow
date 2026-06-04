@@ -1,20 +1,10 @@
 version: "3.9"
 
 # docker-compose.yml — SST app + Lovable Cloud DB + Caddy (reverse proxy)
-# Uso en Digital Ocean (Ubuntu 22.04+):
-#   1) Instala Docker:        curl -fsSL https://get.docker.com | sh
-#   2) Sube este repo al VPS (git clone) y crea un archivo .env (ver más abajo)
-#   3) Levanta:               docker compose up -d --build
-#   4) App:                   http://TU_IP        (puerto 80)
-#
-# Variables esperadas en .env (junto a este archivo):
-#   APP_PORT=3000
-#   SUPABASE_URL=https://...
-#   SUPABASE_PUBLISHABLE_KEY=...
-#   VITE_SUPABASE_URL=https://...
-#   VITE_SUPABASE_PUBLISHABLE_KEY=...
-#   # Cuando tengas dominio, descomenta CADDY_DOMAIN para activar HTTPS automático
-#   # CADDY_DOMAIN=midominio.com
+# Uso en Digital Ocean (Ubuntu):
+#   1) Instala Docker y Portainer.
+#   2) Sube este repo a GitHub con su Dockerfile y Caddyfile.
+#   3) Despliega como Stack en Portainer inyectando las variables de entorno (.env).
 
 services:
   # ────────────────────────────────────────────────────────────────
@@ -32,7 +22,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: ${APP_PORT:-3000}
-      # Variables de Lovable Cloud
+      # Variables de Lovable Cloud / Supabase
       SUPABASE_URL: ${SUPABASE_URL:-}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
@@ -45,7 +35,6 @@ services:
 
   # ────────────────────────────────────────────────────────────────
   # Caddy — reverse proxy con HTTPS automático (Let's Encrypt)
-  # Si no hay dominio aún, sirve la app por HTTP en el puerto 80.
   # ────────────────────────────────────────────────────────────────
   caddy:
     image: caddy:2-alpine

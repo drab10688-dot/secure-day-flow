@@ -45,7 +45,7 @@ function Dashboard() {
     },
   });
 
-  if (!memberships.length) {
+  if (!memberships.length && !isSuperAdmin) {
     return (
       <div className="rounded-xl border border-border bg-card p-10 text-center">
         <h2 className="text-lg font-semibold">Comienza creando una empresa</h2>
@@ -56,6 +56,8 @@ function Dashboard() {
       </div>
     );
   }
+
+  const companiesCount = isSuperAdmin ? (allCompaniesCount ?? 0) : memberships.length;
 
   const items = [
     { label: "Trabajadores", value: stats?.workers ?? "—", icon: Users, to: "/trabajadores" as const },

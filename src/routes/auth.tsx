@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, HardHat, ClipboardCheck, AlertTriangle, Activity, Users2 } from "lucide-react";
+import { HardHat, ClipboardCheck, AlertTriangle, Activity, Users2, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Acceso — SafeWork SG-SST" }] }),
+  head: () => ({ meta: [{ title: "Acceso — SST Pro SG-SST" }] }),
   component: AuthPage,
 });
 
@@ -43,12 +44,12 @@ function AuthPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-white/15 backdrop-blur ring-1 ring-white/30">
-            <Shield className="h-6 w-6" />
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/30 shadow-lg shadow-black/20">
+            <BrandLogo size={36} tone="light" />
           </div>
           <div>
-            <div className="text-xl font-bold tracking-tight">SafeWork</div>
-            <div className="text-xs text-white/70">Sistema SG-SST</div>
+            <div className="text-2xl font-bold tracking-tight leading-none">SST <span className="font-light italic text-emerald-200">Pro</span></div>
+            <div className="text-xs text-white/70 mt-1 tracking-wider uppercase">Sistema SG-SST</div>
           </div>
         </div>
 
@@ -80,18 +81,18 @@ function AuthPage() {
         </div>
 
         <div className="relative z-10 text-xs text-white/60">
-          © {new Date().getFullYear()} SafeWork · Resolución 0312 de 2019
+          © {new Date().getFullYear()} SST Pro · Resolución 0312 de 2019
         </div>
       </div>
 
       {/* Right: Auth form */}
       <div className="flex items-center justify-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-md">
-          <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
+          <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+              <BrandLogo size={30} tone="light" />
             </div>
-            <span className="text-xl font-semibold">SafeWork</span>
+            <span className="text-2xl font-bold tracking-tight">SST <span className="font-light italic text-primary">Pro</span></span>
           </div>
 
           <div className="space-y-1 text-center lg:text-left">

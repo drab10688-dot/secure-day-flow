@@ -416,6 +416,7 @@ function ShiftPage() {
               {submit.isPending ? "Enviando..." : "Enviar para aprobación"}
             </Button>
           </form>
+          </>
         )}
       </section>
 

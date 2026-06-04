@@ -325,7 +325,7 @@ function ShiftPage() {
             {/* Photos */}
             <div>
               <Label className="mb-2 block">Fotos de evidencia * <span className="text-xs font-normal text-muted-foreground">({photos.length}/{MAX_PHOTOS})</span></Label>
-              <p className="mb-2 text-xs text-muted-foreground">Sube selfie, foto de tus EPP y del área de trabajo. Puedes tomar varias.</p>
+              <p className="mb-2 text-xs text-muted-foreground">Toma fotos en vivo (selfie, EPP, área). Las fotos llevan marca de agua con fecha, hora y GPS para evitar falsificaciones.</p>
 
               {photos.length > 0 && (
                 <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">

@@ -1,12 +1,11 @@
 version: "3.9"
 
-# docker-compose.yml — SST app + PostgreSQL + Portainer + Caddy (reverse proxy)
+# docker-compose.yml — SST app + PostgreSQL + Caddy (reverse proxy)
 # Uso en Digital Ocean (Ubuntu 22.04+):
 #   1) Instala Docker:        curl -fsSL https://get.docker.com | sh
 #   2) Sube este repo al VPS (git clone) y crea un archivo .env (ver más abajo)
 #   3) Levanta:               docker compose up -d --build
-#   4) Portainer:             https://TU_IP:9443  (crea usuario admin la primera vez)
-#   5) App:                   http://TU_IP        (puerto 80)
+#   4) App:                   http://TU_IP        (puerto 80)
 #
 # Variables esperadas en .env (junto a este archivo):
 #   POSTGRES_USER=sst
@@ -88,25 +87,8 @@ services:
     networks:
       - sst-net
 
-  # ────────────────────────────────────────────────────────────────
-  # Portainer — UI para administrar Docker en el VPS
-  # ────────────────────────────────────────────────────────────────
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: unless-stopped
-    ports:
-      - "9000:9000"   # HTTP
-      - "9443:9443"   # HTTPS (recomendado)
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
-    networks:
-      - sst-net
-
 volumes:
   postgres_data:
-  portainer_data:
   caddy_data:
   caddy_config:
 

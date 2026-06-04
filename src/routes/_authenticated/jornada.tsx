@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Clock, Camera, MapPin, RotateCcw, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
+import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/_authenticated/jornada")({
   component: ShiftPage,

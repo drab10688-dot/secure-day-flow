@@ -1,6 +1,6 @@
 version: "3.9"
 
-# docker-compose.yml — SST app + PostgreSQL + Caddy (reverse proxy)
+# docker-compose.yml — SST app + Lovable Cloud DB + Caddy (reverse proxy)
 # Uso en Digital Ocean (Ubuntu 22.04+):
 #   1) Instala Docker:        curl -fsSL https://get.docker.com | sh
 #   2) Sube este repo al VPS (git clone) y crea un archivo .env (ver más abajo)
@@ -8,57 +8,36 @@ version: "3.9"
 #   4) App:                   http://TU_IP        (puerto 80)
 #
 # Variables esperadas en .env (junto a este archivo):
-#   POSTGRES_USER=sst
-#   POSTGRES_PASSWORD=cambia_esto
-#   POSTGRES_DB=sst
 #   APP_PORT=3000
+#   SUPABASE_URL=https://...
+#   SUPABASE_PUBLISHABLE_KEY=...
+#   VITE_SUPABASE_URL=https://...
+#   VITE_SUPABASE_PUBLISHABLE_KEY=...
 #   # Cuando tengas dominio, descomenta CADDY_DOMAIN para activar HTTPS automático
 #   # CADDY_DOMAIN=midominio.com
 
 services:
   # ────────────────────────────────────────────────────────────────
-  # Base de datos PostgreSQL
-  # ────────────────────────────────────────────────────────────────
-  postgres:
-    image: postgres:16-alpine
-    container_name: sst-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-sst}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-sst}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432" # solo accesible desde el propio VPS
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sst}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - sst-net
-
-  # ────────────────────────────────────────────────────────────────
-  # Aplicación (TanStack Start, build con el Dockerfile del repo)
+  # Aplicación (TanStack Start, conectada a Lovable Cloud DB)
   # ────────────────────────────────────────────────────────────────
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}
+        VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-${SUPABASE_PUBLISHABLE_KEY:-}}
     container_name: sst-app
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: ${APP_PORT:-3000}
-      DATABASE_URL: postgres://${POSTGRES_USER:-sst}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-sst}
-      # Variables de Supabase / Lovable Cloud (si las usas)
+      # Variables de Lovable Cloud
       SUPABASE_URL: ${SUPABASE_URL:-}
       SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
       SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-${SUPABASE_URL:-}}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-${SUPABASE_PUBLISHABLE_KEY:-}}
     expose:
       - "${APP_PORT:-3000}"
     networks:
@@ -88,7 +67,6 @@ services:
       - sst-net
 
 volumes:
-  postgres_data:
   caddy_data:
   caddy_config:
 

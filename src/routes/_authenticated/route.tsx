@@ -131,11 +131,11 @@ function AuthedLayout() {
     <div className="flex min-h-screen bg-background">
       <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar md:flex">
         <div className="flex items-center gap-2 border-b border-sidebar-border px-5 py-4">
-          <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-            <Shield className="h-4 w-4" />
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <BrandLogo size={22} tone="light" />
           </div>
           <span className="font-semibold text-sidebar-foreground">
-            SafeWork {isWorker && <span className="text-xs text-muted-foreground">· Trabajador</span>}
+            SST <span className="font-light italic text-primary">Pro</span> {isWorker && <span className="text-xs text-muted-foreground">· Trabajador</span>}
           </span>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">

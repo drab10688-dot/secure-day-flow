@@ -65,7 +65,7 @@ function Dashboard() {
     { label: "Incidentes", value: stats?.incidents ?? "—", icon: AlertTriangle, to: "/incidentes" as const },
     { label: "Riesgos identificados", value: stats?.risks ?? "—", icon: ShieldAlert, to: "/riesgos" as const },
     { label: "Documentos", value: stats?.documents ?? "—", icon: FileText, to: "/documentos" as const },
-    { label: "Empresas", value: memberships.length, icon: Building2, to: "/empresas" as const },
+    { label: "Empresas", value: companiesCount, icon: Building2, to: "/empresas" as const },
   ];
 
   return (

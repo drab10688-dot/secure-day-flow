@@ -11,6 +11,7 @@ import { HardHat, ClipboardCheck, AlertTriangle, Activity, Users2, Shield } from
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WorkerAnimation } from "@/components/WorkerAnimation";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Acceso — SST Pro SG-SST" }] }),

@@ -9,7 +9,7 @@ import { Shield } from "lucide-react";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
-  head: () => ({ meta: [{ title: "Restablecer contraseña — SafeWork" }] }),
+  head: () => ({ meta: [{ title: "Restablecer contraseña — SST Pro" }] }),
   component: ResetPasswordPage,
 });
 

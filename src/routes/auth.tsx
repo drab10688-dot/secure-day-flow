@@ -44,12 +44,12 @@ function AuthPage() {
         </div>
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-white/15 backdrop-blur ring-1 ring-white/30">
-            <Shield className="h-6 w-6" />
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/30 shadow-lg shadow-black/20">
+            <BrandLogo size={36} tone="light" />
           </div>
           <div>
-            <div className="text-xl font-bold tracking-tight">SafeWork</div>
-            <div className="text-xs text-white/70">Sistema SG-SST</div>
+            <div className="text-2xl font-bold tracking-tight leading-none">SST <span className="font-light italic text-emerald-200">Pro</span></div>
+            <div className="text-xs text-white/70 mt-1 tracking-wider uppercase">Sistema SG-SST</div>
           </div>
         </div>
 

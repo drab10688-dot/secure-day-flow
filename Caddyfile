@@ -1,0 +1,8 @@
+# Caddyfile — reverse proxy a la app
+# Sin dominio: escucha en :80 y proxypasa a la app
+# Con dominio: define CADDY_DOMAIN=midominio.com en .env y Caddy gestiona HTTPS
+
+{$CADDY_DOMAIN} {
+	encode gzip zstd
+	reverse_proxy app:{$APP_PORT}
+}

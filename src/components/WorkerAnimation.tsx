@@ -1,96 +1,119 @@
 type Props = { size?: number; className?: string };
 
 /**
- * Animated SST worker: hard hat + body, with a waving arm and a subtle
- * "pulse" safety vest highlight. Pure SVG + CSS keyframes (defined in styles.css).
+ * SST-themed animated illustration: a safety checklist (EPP inspection)
+ * with items being checked off one by one, plus a pulsing safety shield.
+ * No human figures — purely iconographic, on-brand, never looks "risky".
  */
 export function WorkerAnimation({ size = 220, className }: Props) {
+  const items = [0, 1, 2, 3];
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 200 240"
+      viewBox="0 0 220 240"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
       aria-hidden
     >
-      {/* ground shadow */}
-      <ellipse cx="100" cy="225" rx="55" ry="6" fill="black" fillOpacity="0.15">
-        <animate attributeName="rx" values="55;48;55" dur="2.4s" repeatCount="indefinite" />
-        <animate attributeName="opacity" values="0.18;0.10;0.18" dur="2.4s" repeatCount="indefinite" />
-      </ellipse>
+      {/* soft ground shadow */}
+      <ellipse cx="110" cy="228" rx="70" ry="6" fill="black" fillOpacity="0.12" />
 
-      {/* body group with gentle bob */}
-      <g className="worker-bob">
-        {/* legs */}
-        <rect x="82" y="170" width="14" height="48" rx="4" fill="#1f2937" />
-        <rect x="104" y="170" width="14" height="48" rx="4" fill="#1f2937" />
-        {/* boots */}
-        <rect x="78" y="214" width="22" height="10" rx="3" fill="#0f172a" />
-        <rect x="100" y="214" width="22" height="10" rx="3" fill="#0f172a" />
+      {/* clipboard back */}
+      <rect x="38" y="36" width="128" height="174" rx="10" fill="#1f2937" />
+      {/* paper */}
+      <rect x="46" y="46" width="112" height="156" rx="6" fill="#fafaf9" />
+      {/* clip */}
+      <rect x="86" y="28" width="32" height="18" rx="4" fill="#9ca3af" />
+      <rect x="92" y="22" width="20" height="10" rx="3" fill="#d1d5db" />
 
-        {/* safety vest body */}
-        <path
-          d="M62 110 Q100 96 138 110 L134 178 Q100 188 66 178 Z"
-          fill="#facc15"
-          stroke="#1f2937"
-          strokeWidth="2.5"
+      {/* header line on paper */}
+      <rect x="56" y="58" width="60" height="6" rx="2" fill="#10b981" />
+      <rect x="56" y="70" width="40" height="3" rx="1.5" fill="#cbd5e1" />
+
+      {/* checklist items */}
+      {items.map((i) => {
+        const y = 92 + i * 26;
+        const delay = i * 0.5;
+        return (
+          <g key={i}>
+            {/* checkbox */}
+            <rect
+              x="56"
+              y={y}
+              width="14"
+              height="14"
+              rx="3"
+              fill="white"
+              stroke="#10b981"
+              strokeWidth="2"
+            />
+            {/* check mark — drawn in */}
+            <path
+              d={`M${59} ${y + 7} L${62} ${y + 10} L${68} ${y + 4}`}
+              stroke="#10b981"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+              strokeDasharray="20"
+              strokeDashoffset="20"
+            >
+              <animate
+                attributeName="stroke-dashoffset"
+                values="20;20;0;0;20"
+                keyTimes="0;0.2;0.4;0.9;1"
+                dur="3.2s"
+                begin={`${delay}s`}
+                repeatCount="indefinite"
+              />
+            </path>
+            {/* label line */}
+            <rect x="78" y={y + 3} width="64" height="4" rx="2" fill="#e5e7eb">
+              <animate
+                attributeName="fill"
+                values="#e5e7eb;#e5e7eb;#a7f3d0;#a7f3d0;#e5e7eb"
+                keyTimes="0;0.2;0.4;0.9;1"
+                dur="3.2s"
+                begin={`${delay}s`}
+                repeatCount="indefinite"
+              />
+            </rect>
+            <rect x="78" y={y + 9} width="38" height="3" rx="1.5" fill="#f1f5f9" />
+          </g>
+        );
+      })}
+
+      {/* floating safety shield badge */}
+      <g>
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          values="0 0; 0 -6; 0 0"
+          dur="3s"
+          repeatCount="indefinite"
         />
-        {/* reflective stripes */}
-        <rect x="68" y="148" width="64" height="6" fill="white" fillOpacity="0.85" />
-        <rect x="68" y="160" width="64" height="3" fill="#fff" fillOpacity="0.55">
-          <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
-        </rect>
-
-        {/* neck */}
-        <rect x="92" y="86" width="16" height="14" fill="#f5d6b3" />
-
-        {/* head */}
-        <circle cx="100" cy="74" r="22" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
-        {/* eyes */}
-        <circle cx="93" cy="74" r="2" fill="#1f2937" />
-        <circle cx="107" cy="74" r="2" fill="#1f2937" />
-        {/* smile */}
-        <path d="M93 82 Q100 87 107 82" stroke="#1f2937" strokeWidth="2" strokeLinecap="round" fill="none" />
-
-        {/* hard hat */}
+        {/* pulse ring */}
+        <circle cx="172" cy="62" r="26" fill="#10b981" fillOpacity="0.18">
+          <animate attributeName="r" values="26;34;26" dur="2.2s" repeatCount="indefinite" />
+          <animate attributeName="fill-opacity" values="0.25;0;0.25" dur="2.2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="172" cy="62" r="22" fill="#10b981" />
+        {/* shield */}
         <path
-          d="M76 64 Q78 44 100 42 Q122 44 124 64 Z"
-          fill="#ef4444"
-          stroke="#1f2937"
-          strokeWidth="2.5"
+          d="M172 50 L184 54 V64 C184 72 178 78 172 80 C166 78 160 72 160 64 V54 Z"
+          fill="white"
         />
-        <rect x="74" y="62" width="52" height="6" rx="2" fill="#ef4444" stroke="#1f2937" strokeWidth="2.5" />
-        <rect x="98" y="42" width="4" height="8" fill="#b91c1c" />
-
-        {/* static left arm (down) */}
-        <rect x="56" y="110" width="14" height="46" rx="5" fill="#facc15" stroke="#1f2937" strokeWidth="2" />
-        <circle cx="63" cy="160" r="7" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
-
-        {/* waving right arm — already raised, hand on top, gentle side-to-side wave */}
-        <g>
-          <animateTransform
-            attributeName="transform"
-            type="rotate"
-            from="-15 135 114"
-            to="15 135 114"
-            dur="1.1s"
-            repeatCount="indefinite"
-            values="-15;15;-15"
-            keyTimes="0;0.5;1"
-            calcMode="spline"
-            keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
-          />
-          {/* upper arm from shoulder going up to elbow */}
-          <rect x="128" y="68" width="14" height="48" rx="6" fill="#facc15" stroke="#1f2937" strokeWidth="2" />
-          {/* sleeve cuff */}
-          <rect x="126" y="66" width="18" height="5" rx="2" fill="#eab308" stroke="#1f2937" strokeWidth="1.5" />
-          {/* hand (waving) */}
-          <circle cx="135" cy="60" r="8" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
-          {/* thumb hint */}
-          <path d="M141 58 Q144 60 142 63" stroke="#1f2937" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        </g>
+        {/* check inside shield */}
+        <path
+          d="M166 64 L170 68 L178 60"
+          stroke="#10b981"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </g>
     </svg>
   );

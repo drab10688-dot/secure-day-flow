@@ -71,7 +71,7 @@ function ShiftPage() {
   const [streaming, setStreaming] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  
 
   // GPS
   const captureLocation = () => {

@@ -131,6 +131,14 @@ function LoginForm() {
     if (error) toast.error(error.message);
     else toast.success("Bienvenido");
   };
+  const forgot = async () => {
+    if (!email) return toast.error("Escribe tu email primero");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Te enviamos un correo para restablecer la contraseña");
+  };
   return (
     <form onSubmit={submit} className="mt-4 space-y-3">
       <div className="space-y-1">
@@ -144,6 +152,9 @@ function LoginForm() {
       <Button type="submit" className="w-full" disabled={busy}>
         {busy ? "Ingresando..." : "Entrar"}
       </Button>
+      <button type="button" onClick={forgot} className="block w-full text-center text-xs text-primary hover:underline">
+        ¿Olvidaste tu contraseña?
+      </button>
     </form>
   );
 }

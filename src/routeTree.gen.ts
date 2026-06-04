@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -25,11 +26,17 @@ import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedEmergenciasRouteImport } from './routes/_authenticated/emergencias'
 import { Route as AuthenticatedDocumentosRouteImport } from './routes/_authenticated/documentos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedConfiguracionRouteImport } from './routes/_authenticated/configuracion'
 import { Route as AuthenticatedComitesRouteImport } from './routes/_authenticated/comites'
 import { Route as AuthenticatedCapacitacionesRouteImport } from './routes/_authenticated/capacitaciones'
 import { Route as AuthenticatedAutoevaluacionRouteImport } from './routes/_authenticated/autoevaluacion'
 import { Route as AuthenticatedAprobacionesRouteImport } from './routes/_authenticated/aprobaciones'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -113,6 +120,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracionRoute =
+  AuthenticatedConfiguracionRouteImport.update({
+    id: '/configuracion',
+    path: '/configuracion',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedComitesRoute = AuthenticatedComitesRouteImport.update({
   id: '/comites',
   path: '/comites',
@@ -140,10 +153,12 @@ const AuthenticatedAprobacionesRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/comites': typeof AuthenticatedComitesRoute
+  '/configuracion': typeof AuthenticatedConfiguracionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/emergencias': typeof AuthenticatedEmergenciasRoute
@@ -161,10 +176,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/comites': typeof AuthenticatedComitesRoute
+  '/configuracion': typeof AuthenticatedConfiguracionRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/documentos': typeof AuthenticatedDocumentosRoute
   '/emergencias': typeof AuthenticatedEmergenciasRoute
@@ -184,10 +201,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/aprobaciones': typeof AuthenticatedAprobacionesRoute
   '/_authenticated/autoevaluacion': typeof AuthenticatedAutoevaluacionRoute
   '/_authenticated/capacitaciones': typeof AuthenticatedCapacitacionesRoute
   '/_authenticated/comites': typeof AuthenticatedComitesRoute
+  '/_authenticated/configuracion': typeof AuthenticatedConfiguracionRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/documentos': typeof AuthenticatedDocumentosRoute
   '/_authenticated/emergencias': typeof AuthenticatedEmergenciasRoute
@@ -207,10 +226,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/reset-password'
     | '/aprobaciones'
     | '/autoevaluacion'
     | '/capacitaciones'
     | '/comites'
+    | '/configuracion'
     | '/dashboard'
     | '/documentos'
     | '/emergencias'
@@ -228,10 +249,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/reset-password'
     | '/aprobaciones'
     | '/autoevaluacion'
     | '/capacitaciones'
     | '/comites'
+    | '/configuracion'
     | '/dashboard'
     | '/documentos'
     | '/emergencias'
@@ -250,10 +273,12 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/reset-password'
     | '/_authenticated/aprobaciones'
     | '/_authenticated/autoevaluacion'
     | '/_authenticated/capacitaciones'
     | '/_authenticated/comites'
+    | '/_authenticated/configuracion'
     | '/_authenticated/dashboard'
     | '/_authenticated/documentos'
     | '/_authenticated/emergencias'
@@ -273,10 +298,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -389,6 +422,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/configuracion': {
+      id: '/_authenticated/configuracion'
+      path: '/configuracion'
+      fullPath: '/configuracion'
+      preLoaderRoute: typeof AuthenticatedConfiguracionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/comites': {
       id: '/_authenticated/comites'
       path: '/comites'
@@ -425,6 +465,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAutoevaluacionRoute: typeof AuthenticatedAutoevaluacionRoute
   AuthenticatedCapacitacionesRoute: typeof AuthenticatedCapacitacionesRoute
   AuthenticatedComitesRoute: typeof AuthenticatedComitesRoute
+  AuthenticatedConfiguracionRoute: typeof AuthenticatedConfiguracionRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDocumentosRoute: typeof AuthenticatedDocumentosRoute
   AuthenticatedEmergenciasRoute: typeof AuthenticatedEmergenciasRoute
@@ -445,6 +486,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAutoevaluacionRoute: AuthenticatedAutoevaluacionRoute,
   AuthenticatedCapacitacionesRoute: AuthenticatedCapacitacionesRoute,
   AuthenticatedComitesRoute: AuthenticatedComitesRoute,
+  AuthenticatedConfiguracionRoute: AuthenticatedConfiguracionRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDocumentosRoute: AuthenticatedDocumentosRoute,
   AuthenticatedEmergenciasRoute: AuthenticatedEmergenciasRoute,
@@ -467,17 +509,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

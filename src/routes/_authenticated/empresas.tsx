@@ -7,9 +7,10 @@ import { useCompany } from "@/hooks/useCompany";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Building2, Trash2 } from "lucide-react";
+import { Plus, Building2, Trash2, Power, PowerOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/empresas")({
@@ -21,6 +22,8 @@ function EmpresasPage() {
   const { memberships, refetch, setCurrentCompanyId, currentCompanyId } = useCompany();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", nit: "", sector: "", address: "" });
+  const [deactivateFor, setDeactivateFor] = useState<{ id: string; name: string } | null>(null);
+  const [reason, setReason] = useState("");
   const qc = useQueryClient();
 
   const { data: isSuperAdmin } = useQuery({
@@ -33,10 +36,13 @@ function EmpresasPage() {
   });
 
   const { data: allCompanies } = useQuery({
-    queryKey: ["all-companies-super", user?.id],
+    queryKey: ["all-companies-super-full", user?.id],
     enabled: !!isSuperAdmin,
     queryFn: async () => {
-      const { data, error } = await supabase.from("companies").select("id, name, nit").order("name");
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, name, nit, is_active, deactivation_reason, deactivated_at")
+        .order("name");
       if (error) throw error;
       return data ?? [];
     },
@@ -44,7 +50,7 @@ function EmpresasPage() {
 
   const items = isSuperAdmin
     ? (allCompanies ?? []).map((c: any) => ({ company_id: c.id, role: "admin" as const, companies: c }))
-    : memberships;
+    : memberships.map((m) => ({ ...m, companies: m.companies as any }));
 
   const create = useMutation({
     mutationFn: async () => {
@@ -81,12 +87,32 @@ function EmpresasPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const toggleActive = useMutation({
+    mutationFn: async ({ id, active, why }: { id: string; active: boolean; why?: string }) => {
+      const payload: any = active
+        ? { is_active: true, deactivated_at: null, deactivation_reason: null }
+        : { is_active: false, deactivated_at: new Date().toISOString(), deactivation_reason: why ?? null };
+      const { error } = await supabase.from("companies").update(payload).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(vars.active ? "Empresa reactivada" : "Empresa desactivada");
+      setDeactivateFor(null);
+      setReason("");
+      qc.invalidateQueries();
+      refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Empresas</h1>
-          <p className="text-sm text-muted-foreground">Administra las empresas a las que perteneces.</p>
+          <p className="text-sm text-muted-foreground">
+            {isSuperAdmin ? "Administra todas las empresas del sistema." : "Administra las empresas a las que perteneces."}
+          </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -110,10 +136,11 @@ function EmpresasPage() {
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((m: any) => {
           const canDelete = m.role === "admin";
+          const isActive = m.companies?.is_active !== false;
           return (
-            <div key={m.company_id} className="rounded-xl border border-border bg-card p-5">
+            <div key={m.company_id} className={`rounded-xl border bg-card p-5 ${isActive ? "border-border" : "border-destructive/40"}`}>
               <div className="flex items-center gap-3">
-                <div className="grid h-10 w-10 place-items-center rounded-lg bg-secondary text-primary">
+                <div className={`grid h-10 w-10 place-items-center rounded-lg ${isActive ? "bg-secondary text-primary" : "bg-destructive/10 text-destructive"}`}>
                   <Building2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -121,10 +148,33 @@ function EmpresasPage() {
                   <p className="truncate text-xs text-muted-foreground">NIT: {m.companies?.nit ?? "—"}</p>
                 </div>
               </div>
+
+              {!isActive && (
+                <div className="mt-3 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                  <div className="font-semibold">Suspendida</div>
+                  {m.companies?.deactivation_reason && <div className="mt-0.5 opacity-80">{m.companies.deactivation_reason}</div>}
+                </div>
+              )}
+
               <div className="mt-3 flex items-center justify-between gap-2">
                 <span className="rounded-full bg-secondary px-2 py-0.5 text-xs capitalize">{m.role}</span>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setCurrentCompanyId(m.company_id)}>Seleccionar</Button>
+                <div className="flex flex-wrap gap-2 justify-end">
+                  <Button size="sm" variant="outline" onClick={() => setCurrentCompanyId(m.company_id)} disabled={!isActive && !isSuperAdmin}>
+                    Seleccionar
+                  </Button>
+
+                  {isSuperAdmin && (
+                    isActive ? (
+                      <Button size="sm" variant="outline" className="border-destructive/40 text-destructive hover:bg-destructive/10" onClick={() => setDeactivateFor({ id: m.company_id, name: m.companies?.name ?? "" })}>
+                        <PowerOff className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" className="border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10" onClick={() => toggleActive.mutate({ id: m.company_id, active: true })}>
+                        <Power className="h-4 w-4" />
+                      </Button>
+                    )
+                  )}
+
                   {canDelete && (
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -155,6 +205,28 @@ function EmpresasPage() {
           </div>
         )}
       </div>
+
+      {/* Deactivate dialog */}
+      <Dialog open={!!deactivateFor} onOpenChange={(o) => !o && setDeactivateFor(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suspender "{deactivateFor?.name}"</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Al suspender, los trabajadores y administradores de esta empresa perderán acceso a sus jornadas, reportes y todas las funciones hasta que la reactives.
+          </p>
+          <div>
+            <Label>Motivo (opcional)</Label>
+            <Textarea value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Ej: Pago de soporte pendiente" />
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setDeactivateFor(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deactivateFor && toggleActive.mutate({ id: deactivateFor.id, active: false, why: reason })} disabled={toggleActive.isPending}>
+              Suspender empresa
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

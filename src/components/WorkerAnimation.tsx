@@ -68,10 +68,28 @@ export function WorkerAnimation({ size = 220, className }: Props) {
         <rect x="56" y="110" width="14" height="46" rx="5" fill="#facc15" stroke="#1f2937" strokeWidth="2" />
         <circle cx="63" cy="160" r="7" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
 
-        {/* waving right arm — rotates around shoulder */}
-        <g className="worker-wave" style={{ transformOrigin: "135px 116px" }}>
-          <rect x="128" y="110" width="14" height="46" rx="5" fill="#facc15" stroke="#1f2937" strokeWidth="2" />
-          <circle cx="135" cy="160" r="7" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
+        {/* waving right arm — already raised, hand on top, gentle side-to-side wave */}
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="rotate"
+            from="-15 135 114"
+            to="15 135 114"
+            dur="1.1s"
+            repeatCount="indefinite"
+            values="-15;15;-15"
+            keyTimes="0;0.5;1"
+            calcMode="spline"
+            keySplines="0.42 0 0.58 1; 0.42 0 0.58 1"
+          />
+          {/* upper arm from shoulder going up to elbow */}
+          <rect x="128" y="68" width="14" height="48" rx="6" fill="#facc15" stroke="#1f2937" strokeWidth="2" />
+          {/* sleeve cuff */}
+          <rect x="126" y="66" width="18" height="5" rx="2" fill="#eab308" stroke="#1f2937" strokeWidth="1.5" />
+          {/* hand (waving) */}
+          <circle cx="135" cy="60" r="8" fill="#f5d6b3" stroke="#1f2937" strokeWidth="2" />
+          {/* thumb hint */}
+          <path d="M141 58 Q144 60 142 63" stroke="#1f2937" strokeWidth="1.5" fill="none" strokeLinecap="round" />
         </g>
       </g>
     </svg>

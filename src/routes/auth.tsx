@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, HardHat, ClipboardCheck, AlertTriangle, Activity, Users2 } from "lucide-react";
+import { HardHat, ClipboardCheck, AlertTriangle, Activity, Users2, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { BrandLogo } from "@/components/BrandLogo";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Acceso — SafeWork SG-SST" }] }),
+  head: () => ({ meta: [{ title: "Acceso — SST Pro SG-SST" }] }),
   component: AuthPage,
 });
 

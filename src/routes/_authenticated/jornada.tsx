@@ -409,8 +409,8 @@ function ShiftPage() {
             </div>
 
             <div>
-              <Label>Firma (nombre completo) *</Label>
-              <Input required value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Tu nombre completo" />
+              <Label>Firma *</Label>
+              <SignaturePad value={signature} onChange={setSignature} />
             </div>
 
             <Button type="submit" className="w-full" disabled={submit.isPending}>

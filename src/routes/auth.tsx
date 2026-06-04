@@ -28,43 +28,50 @@ function AuthPage() {
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
       {/* Left: SST-themed hero */}
-      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-emerald-700 p-12 text-primary-foreground">
-        {/* decorative shapes */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-white blur-3xl" />
-          <div className="absolute bottom-0 -left-20 h-80 w-80 rounded-full bg-emerald-300 blur-3xl" />
-          <svg className="absolute inset-0 h-full w-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#grid)" />
-          </svg>
+      <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-emerald-600 to-emerald-800 p-12 text-primary-foreground">
+        {/* Animated decorative shapes */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute -top-20 -right-20 h-96 w-96 rounded-full bg-emerald-200 blur-3xl animate-float-slow" />
+          <div className="absolute bottom-0 -left-20 h-80 w-80 rounded-full bg-emerald-300 blur-3xl animate-float-slow-rev" />
+          <div className="absolute top-1/3 left-1/4 h-64 w-64 rounded-full bg-white blur-3xl opacity-40 animate-float-slow [animation-delay:2s]" />
         </div>
+        {/* Animated grid */}
+        <div className="absolute inset-0 opacity-[0.12] pointer-events-none animate-grid-pan"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+        {/* Glow rays */}
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]" />
 
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/30 shadow-lg shadow-black/20">
-            <BrandLogo size={36} tone="light" />
+        <div className="relative z-10 flex items-center gap-3 animate-fade-up">
+          <div className="relative grid h-16 w-16 place-items-center rounded-2xl bg-white/15 backdrop-blur ring-1 ring-white/30 shadow-2xl shadow-black/30">
+            <span className="absolute inset-0 rounded-2xl ring-2 ring-white/50 animate-pulse-ring" />
+            <BrandLogo size={40} tone="light" />
           </div>
           <div>
             <div className="text-2xl font-bold tracking-tight leading-none">SST <span className="font-light italic text-emerald-200">Pro</span></div>
-            <div className="text-xs text-white/70 mt-1 tracking-wider uppercase">Sistema SG-SST</div>
+            <div className="text-xs text-white/70 mt-1 tracking-[0.2em] uppercase">Sistema SG-SST</div>
           </div>
         </div>
 
         <div className="relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium backdrop-blur animate-fade-up delay-100">
             <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" /> Seguridad y Salud en el Trabajo
           </div>
-          <h1 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
-            Cuidar a quien trabaja, <br /> es proteger lo que produce.
+          <h1 className="text-4xl xl:text-5xl font-bold leading-tight tracking-tight animate-fade-up delay-200">
+            Cuidar a quien trabaja, <br />
+            <span className="bg-gradient-to-r from-white via-emerald-100 to-emerald-300 bg-clip-text text-transparent">
+              es proteger lo que produce.
+            </span>
           </h1>
-          <p className="max-w-md text-white/85">
+          <p className="max-w-md text-white/85 animate-fade-up delay-300">
             Gestiona inicio de jornada, EPP, incidentes, matriz de riesgos y documentos SG-SST de tu empresa desde un solo lugar.
           </p>
 
-          <div className="grid grid-cols-2 gap-3 max-w-md pt-4">
+          <div className="grid grid-cols-2 gap-3 max-w-md pt-4 animate-fade-up delay-400">
             {[
               { icon: HardHat, label: "Checklist EPP" },
               { icon: ClipboardCheck, label: "Aprobación jornada" },
@@ -72,43 +79,60 @@ function AuthPage() {
               { icon: Activity, label: "Indicadores" },
               { icon: Users2, label: "Multi-empresa" },
               { icon: Shield, label: "Matriz de riesgos" },
-            ].map((it) => (
-              <div key={it.label} className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm backdrop-blur">
-                <it.icon className="h-4 w-4 shrink-0" /> {it.label}
+            ].map((it, i) => (
+              <div
+                key={it.label}
+                className="group flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm backdrop-blur transition-all duration-300 hover:bg-white/15 hover:border-white/30 hover:translate-x-1 hover:shadow-lg hover:shadow-emerald-900/30"
+                style={{ animationDelay: `${0.5 + i * 0.05}s` }}
+              >
+                <it.icon className="h-4 w-4 shrink-0 transition-transform group-hover:scale-110" /> {it.label}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="relative z-10 text-xs text-white/60">
+        <div className="relative z-10 text-xs text-white/60 animate-fade-up delay-500">
           © {new Date().getFullYear()} SST Pro · Resolución 0312 de 2019
         </div>
       </div>
 
       {/* Right: Auth form */}
-      <div className="flex items-center justify-center px-4 py-10 sm:px-8">
-        <div className="w-full max-w-md">
+      <div className="relative flex items-center justify-center px-4 py-10 sm:px-8 overflow-hidden">
+        {/* subtle background ornament for the right side */}
+        <div className="pointer-events-none absolute inset-0 -z-0">
+          <div className="absolute top-10 right-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl animate-float-slow" />
+          <div className="absolute bottom-10 left-10 h-72 w-72 rounded-full bg-accent/5 blur-3xl animate-float-slow-rev" />
+        </div>
+
+        <div className="relative w-full max-w-md animate-fade-up">
           <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
+              <span className="absolute inset-0 rounded-xl ring-2 ring-primary/50 animate-pulse-ring" />
               <BrandLogo size={30} tone="light" />
             </div>
             <span className="text-2xl font-bold tracking-tight">SST <span className="font-light italic text-primary">Pro</span></span>
           </div>
 
           <div className="space-y-1 text-center lg:text-left">
-            <h2 className="text-2xl font-bold tracking-tight">Bienvenido</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Bienvenido</h2>
             <p className="text-sm text-muted-foreground">Ingresa a tu panel SG-SST o crea tu cuenta de trabajador.</p>
           </div>
 
-          <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-lg shadow-primary/5">
-            <Tabs defaultValue="login">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
-                <TabsTrigger value="signup">Crear cuenta</TabsTrigger>
-              </TabsList>
-              <TabsContent value="login"><LoginForm /></TabsContent>
-              <TabsContent value="signup"><SignupForm /></TabsContent>
-            </Tabs>
+          <div className="relative mt-6 rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/10 overflow-hidden">
+            {/* shine sweep */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div className="absolute -top-1/2 -bottom-1/2 w-1/3 bg-gradient-to-r from-transparent via-primary/10 to-transparent blur-md animate-shine" />
+            </div>
+            <div className="relative">
+              <Tabs defaultValue="login">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="login">Iniciar sesión</TabsTrigger>
+                  <TabsTrigger value="signup">Crear cuenta</TabsTrigger>
+                </TabsList>
+                <TabsContent value="login"><LoginForm /></TabsContent>
+                <TabsContent value="signup"><SignupForm /></TabsContent>
+              </Tabs>
+            </div>
           </div>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">

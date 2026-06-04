@@ -239,11 +239,10 @@ function ShiftPage() {
         <h1 className="text-xl font-bold">Solicitar inicio de jornada</h1>
         <p className="text-sm text-muted-foreground">Adjunta fotos (selfie, EPP, área de trabajo), completa el cuestionario y envía tu ubicación. El supervisor aprobará tu inicio.</p>
 
-        {today ? (
+        {today && today.approval_status !== "rechazado" ? (
           <div className="mt-6 space-y-3">
             <div className={`rounded-lg border p-4 ${
               today.approval_status === "aprobado" ? "border-success bg-success/10"
-              : today.approval_status === "rechazado" ? "border-destructive bg-destructive/10"
               : "border-warning bg-warning/10"
             }`}>
               <div className="flex items-center gap-2 font-medium">
@@ -268,6 +267,20 @@ function ShiftPage() {
             )}
           </div>
         ) : (
+          <>
+            {today?.approval_status === "rechazado" && (
+              <div className="mt-6 rounded-lg border border-destructive bg-destructive/10 p-4">
+                <div className="flex items-center gap-2 font-medium text-destructive">
+                  <CheckCircle2 className="h-5 w-5" /> Solicitud anterior rechazada
+                </div>
+                <p className="mt-1 text-sm">Enviada a las {new Date(today.started_at).toLocaleTimeString()}.</p>
+                {today.approval_notes && (
+                  <p className="mt-2 text-sm"><span className="font-medium">Notas del supervisor:</span> {today.approval_notes}</p>
+                )}
+                <p className="mt-2 text-xs text-muted-foreground">Corrige las observaciones y envía una nueva solicitud abajo.</p>
+              </div>
+            )}
+
           <form onSubmit={(e) => { e.preventDefault(); submit.mutate(); }} className="mt-6 space-y-5">
             {/* Photos */}
             <div>
@@ -403,6 +416,7 @@ function ShiftPage() {
               {submit.isPending ? "Enviando..." : "Enviar para aprobación"}
             </Button>
           </form>
+          </>
         )}
       </section>
 

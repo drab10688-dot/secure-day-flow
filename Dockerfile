@@ -1,4 +1,4 @@
-# Dockerfile — build de la app TanStack Start con Bun
+# Dockerfile — TanStack Start (Node server build) con Bun para instalar/compilar
 FROM oven/bun:1 AS deps
 WORKDIR /app
 COPY package.json bun.lock* bunfig.toml* ./
@@ -14,10 +14,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN bun run build
 
-FROM oven/bun:1-slim AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=build /app/.output ./.output
+ENV PORT=3000
+ENV HOST=0.0.0.0
+COPY --from=build /app/dist ./dist
 COPY --from=build /app/package.json ./package.json
 EXPOSE 3000
-CMD ["bun", "run", ".output/server/index.mjs"]
+CMD ["node", "dist/server/index.mjs"]

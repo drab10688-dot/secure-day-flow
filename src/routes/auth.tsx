@@ -104,6 +104,12 @@ function AuthPage() {
           <div className="absolute bottom-10 left-10 h-72 w-72 rounded-full bg-accent/5 blur-3xl animate-float-slow-rev" />
         </div>
 
+        {/* Friendly worker waving — hidden on small screens to save space */}
+        <div className="pointer-events-none hidden xl:block absolute bottom-6 right-6 opacity-90">
+          <WorkerAnimation size={180} />
+        </div>
+
+
         <div className="relative w-full max-w-md animate-fade-up">
           <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
             <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">

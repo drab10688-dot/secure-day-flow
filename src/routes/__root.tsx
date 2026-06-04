@@ -42,10 +42,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SafeWork — Sistema SG-SST" },
+      { title: "SST Pro — Sistema SG-SST" },
       { name: "description", content: "Plataforma web SG-SST multi-empresa: gestiona trabajadores, jornadas, incidentes y matriz de riesgos." },
-      { property: "og:title", content: "SafeWork — Sistema SG-SST" },
-      { name: "twitter:title", content: "SafeWork — Sistema SG-SST" },
+      { property: "og:title", content: "SST Pro — Sistema SG-SST" },
+      { name: "twitter:title", content: "SST Pro — Sistema SG-SST" },
       { property: "og:description", content: "Plataforma web SG-SST multi-empresa: gestiona trabajadores, jornadas, incidentes y matriz de riesgos." },
       { name: "twitter:description", content: "Plataforma web SG-SST multi-empresa: gestiona trabajadores, jornadas, incidentes y matriz de riesgos." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/b17bf0b6-6c82-427d-9fe6-79974cf54c66" },

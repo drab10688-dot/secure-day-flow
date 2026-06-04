@@ -193,7 +193,10 @@ export type Database = {
           address: string | null
           created_at: string
           created_by: string
+          deactivated_at: string | null
+          deactivation_reason: string | null
           id: string
+          is_active: boolean
           name: string
           nit: string | null
           sector: string | null
@@ -202,7 +205,10 @@ export type Database = {
           address?: string | null
           created_at?: string
           created_by: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           id?: string
+          is_active?: boolean
           name: string
           nit?: string | null
           sector?: string | null
@@ -211,7 +217,10 @@ export type Database = {
           address?: string | null
           created_at?: string
           created_by?: string
+          deactivated_at?: string | null
+          deactivation_reason?: string | null
           id?: string
+          is_active?: boolean
           name?: string
           nit?: string | null
           sector?: string | null

@@ -1,0 +1,115 @@
+version: "3.9"
+
+# docker-compose.yml — SST app + PostgreSQL + Portainer + Caddy (reverse proxy)
+# Uso en Digital Ocean (Ubuntu 22.04+):
+#   1) Instala Docker:        curl -fsSL https://get.docker.com | sh
+#   2) Sube este repo al VPS (git clone) y crea un archivo .env (ver más abajo)
+#   3) Levanta:               docker compose up -d --build
+#   4) Portainer:             https://TU_IP:9443  (crea usuario admin la primera vez)
+#   5) App:                   http://TU_IP        (puerto 80)
+#
+# Variables esperadas en .env (junto a este archivo):
+#   POSTGRES_USER=sst
+#   POSTGRES_PASSWORD=cambia_esto
+#   POSTGRES_DB=sst
+#   APP_PORT=3000
+#   # Cuando tengas dominio, descomenta CADDY_DOMAIN para activar HTTPS automático
+#   # CADDY_DOMAIN=midominio.com
+
+services:
+  # ────────────────────────────────────────────────────────────────
+  # Base de datos PostgreSQL
+  # ────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: sst-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sst}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-sst}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432" # solo accesible desde el propio VPS
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sst}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sst-net
+
+  # ────────────────────────────────────────────────────────────────
+  # Aplicación (TanStack Start, build con el Dockerfile del repo)
+  # ────────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sst-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: ${APP_PORT:-3000}
+      DATABASE_URL: postgres://${POSTGRES_USER:-sst}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-sst}
+      # Variables de Supabase / Lovable Cloud (si las usas)
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+    expose:
+      - "${APP_PORT:-3000}"
+    networks:
+      - sst-net
+
+  # ────────────────────────────────────────────────────────────────
+  # Caddy — reverse proxy con HTTPS automático (Let's Encrypt)
+  # Si no hay dominio aún, sirve la app por HTTP en el puerto 80.
+  # ────────────────────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: sst-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN:-:80}
+      APP_PORT: ${APP_PORT:-3000}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - sst-net
+
+  # ────────────────────────────────────────────────────────────────
+  # Portainer — UI para administrar Docker en el VPS
+  # ────────────────────────────────────────────────────────────────
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # HTTP
+      - "9443:9443"   # HTTPS (recomendado)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - sst-net
+
+volumes:
+  postgres_data:
+  portainer_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  sst-net:
+    driver: bridge

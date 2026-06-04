@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Clock, Camera, MapPin, RotateCcw, ImagePlus, X } from "lucide-react";
+import { CheckCircle2, Clock, Camera, MapPin, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { SignaturePad } from "@/components/SignaturePad";
 
@@ -71,7 +71,7 @@ function ShiftPage() {
   const [streaming, setStreaming] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  
 
   // GPS
   const captureLocation = () => {
@@ -89,55 +89,94 @@ function ShiftPage() {
   useEffect(() => { captureLocation(); }, []);
 
   // Camera
-  const startCamera = async () => {
+  const attachStream = async (stream: MediaStream) => {
+    streamRef.current = stream;
+    setStreaming(true);
+    // Wait a tick for video element to mount, then attach
+    await new Promise((r) => requestAnimationFrame(() => r(null)));
+    const v = videoRef.current;
+    if (!v) return;
+    v.srcObject = stream;
+    v.muted = true;
+    (v as any).playsInline = true;
+    try { await v.play(); } catch { /* ignore autoplay rejection; user gesture started this */ }
+  };
+  const startCamera = async (facing: "user" | "environment" = "user") => {
     if (photos.length >= MAX_PHOTOS) {
       toast.error(`Máximo ${MAX_PHOTOS} fotos`);
       return;
     }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      toast.error("Tu navegador no soporta cámara. Usa Chrome/Safari actualizado.");
+      return;
+    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setStreaming(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false,
+      });
+      await attachStream(stream);
     } catch (e: any) {
-      toast.error("No se pudo acceder a la cámara: " + (e?.message ?? "permiso denegado"));
+      // Fallback without facingMode constraint (laptops sometimes reject it)
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        await attachStream(stream);
+      } catch (err: any) {
+        toast.error("No se pudo acceder a la cámara: " + (err?.message ?? e?.message ?? "permiso denegado"));
+      }
     }
   };
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
     setStreaming(false);
   };
   const takePhoto = () => {
-    if (!videoRef.current) return;
     const v = videoRef.current;
+    if (!v || !v.videoWidth) {
+      toast.error("La cámara aún no está lista. Espera un segundo.");
+      return;
+    }
+    const w = v.videoWidth, h = v.videoHeight;
     const canvas = document.createElement("canvas");
-    canvas.width = v.videoWidth || 720;
-    canvas.height = v.videoHeight || 540;
+    canvas.width = w; canvas.height = h;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(v, 0, 0, w, h);
+
+    // Anti-falsification watermark
+    const now = new Date();
+    const stamp = now.toLocaleString();
+    const gps = coords ? `GPS ${coords.lat.toFixed(5)}, ${coords.lng.toFixed(5)} (±${Math.round(coords.acc)}m)` : "GPS no disponible";
+    const who = user?.email ?? "Trabajador";
+    const lines = ["SST · Inicio de jornada", stamp, gps, who];
+
+    const pad = Math.round(w * 0.015);
+    const fontSize = Math.max(14, Math.round(w * 0.022));
+    ctx.font = `600 ${fontSize}px system-ui, -apple-system, Segoe UI, sans-serif`;
+    const lineH = Math.round(fontSize * 1.35);
+    const boxH = lineH * lines.length + pad * 2;
+    // Semi-transparent black bar at bottom
+    ctx.fillStyle = "rgba(0,0,0,0.55)";
+    ctx.fillRect(0, h - boxH, w, boxH);
+    ctx.fillStyle = "#ffffff";
+    ctx.textBaseline = "top";
+    lines.forEach((t, i) => ctx.fillText(t, pad, h - boxH + pad + i * lineH));
+    // Diagonal repeating watermark
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(-Math.PI / 6);
+    ctx.font = `700 ${Math.round(w * 0.06)}px system-ui, sans-serif`;
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.textAlign = "center";
+    ctx.fillText("SST · " + now.toISOString().slice(0, 16), 0, 0);
+    ctx.restore();
+
     setPhotos((p) => [...p, canvas.toDataURL("image/jpeg", 0.85)]);
     stopCamera();
   };
   useEffect(() => () => stopCamera(), []);
-
-  const handleFiles = async (files: FileList | null) => {
-    if (!files) return;
-    const remaining = MAX_PHOTOS - photos.length;
-    const arr = Array.from(files).slice(0, remaining);
-    const dataUrls = await Promise.all(arr.map((f) => new Promise<string>((res, rej) => {
-      const r = new FileReader();
-      r.onload = () => res(r.result as string);
-      r.onerror = rej;
-      r.readAsDataURL(f);
-    })));
-    setPhotos((p) => [...p, ...dataUrls]);
-    if (fileRef.current) fileRef.current.value = "";
-  };
 
   const removePhoto = (idx: number) => setPhotos((p) => p.filter((_, i) => i !== idx));
 
@@ -286,7 +325,7 @@ function ShiftPage() {
             {/* Photos */}
             <div>
               <Label className="mb-2 block">Fotos de evidencia * <span className="text-xs font-normal text-muted-foreground">({photos.length}/{MAX_PHOTOS})</span></Label>
-              <p className="mb-2 text-xs text-muted-foreground">Sube selfie, foto de tus EPP y del área de trabajo. Puedes tomar varias.</p>
+              <p className="mb-2 text-xs text-muted-foreground">Toma fotos en vivo (selfie, EPP, área). Las fotos llevan marca de agua con fecha, hora y GPS para evitar falsificaciones.</p>
 
               {photos.length > 0 && (
                 <div className="mb-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -304,32 +343,27 @@ function ShiftPage() {
                 </div>
               )}
 
+              <video
+                ref={videoRef}
+                className={`w-full max-w-md rounded-lg border border-border bg-black ${streaming ? "block" : "hidden"}`}
+                muted
+                playsInline
+                autoPlay
+              />
               {streaming ? (
-                <div className="space-y-2">
-                  <video ref={videoRef} className="w-full max-w-md rounded-lg border border-border" muted playsInline />
-                  <div className="flex gap-2">
-                    <Button type="button" onClick={takePhoto}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
-                    <Button type="button" variant="outline" onClick={stopCamera}><RotateCcw className="mr-2 h-4 w-4" /> Cerrar</Button>
-                  </div>
+                <div className="mt-2 flex gap-2">
+                  <Button type="button" onClick={takePhoto}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
+                  <Button type="button" variant="outline" onClick={stopCamera}><RotateCcw className="mr-2 h-4 w-4" /> Cerrar</Button>
                 </div>
               ) : (
                 photos.length < MAX_PHOTOS && (
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" onClick={startCamera}>
-                      <Camera className="mr-2 h-4 w-4" /> Tomar selfie
+                    <Button type="button" variant="outline" onClick={() => startCamera("user")}>
+                      <Camera className="mr-2 h-4 w-4" /> Cámara frontal (selfie)
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
-                      <ImagePlus className="mr-2 h-4 w-4" /> Subir / tomar fotos
+                    <Button type="button" variant="outline" onClick={() => startCamera("environment")}>
+                      <Camera className="mr-2 h-4 w-4" /> Cámara trasera
                     </Button>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => handleFiles(e.target.files)}
-                    />
                   </div>
                 )
               )}

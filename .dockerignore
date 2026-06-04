@@ -1,0 +1,16 @@
+.git
+node_modules
+.output
+.vinxi
+.tanstack
+dist
+coverage
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun.lockb
+Dockerfile
+docker-compose.yml

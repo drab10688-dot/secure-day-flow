@@ -12,7 +12,16 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { user } = useAuth();
-  const { currentCompanyId, memberships } = useCompany();
+  const { currentCompanyId, memberships, isSuperAdmin } = useCompany();
+
+  const { data: allCompaniesCount } = useQuery({
+    queryKey: ["all-companies-count", isSuperAdmin],
+    enabled: !!isSuperAdmin,
+    queryFn: async () => {
+      const { count } = await supabase.from("companies").select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
 
   const { data: stats } = useQuery({
     queryKey: ["stats", currentCompanyId],

@@ -131,3 +131,19 @@
 .delay-400 { animation-delay: 0.4s; }
 .delay-500 { animation-delay: 0.5s; }
 
+/* ===== Worker animation ===== */
+@keyframes worker-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes worker-wave {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-65deg); }
+  40% { transform: rotate(-45deg); }
+  60% { transform: rotate(-65deg); }
+  80% { transform: rotate(-40deg); }
+}
+.worker-bob { animation: worker-bob 2.4s ease-in-out infinite; transform-origin: center; }
+.worker-wave { animation: worker-wave 3s ease-in-out infinite; transform-box: fill-box; }
+
+

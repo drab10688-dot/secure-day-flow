@@ -343,32 +343,27 @@ function ShiftPage() {
                 </div>
               )}
 
+              <video
+                ref={videoRef}
+                className={`w-full max-w-md rounded-lg border border-border bg-black ${streaming ? "block" : "hidden"}`}
+                muted
+                playsInline
+                autoPlay
+              />
               {streaming ? (
-                <div className="space-y-2">
-                  <video ref={videoRef} className="w-full max-w-md rounded-lg border border-border" muted playsInline />
-                  <div className="flex gap-2">
-                    <Button type="button" onClick={takePhoto}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
-                    <Button type="button" variant="outline" onClick={stopCamera}><RotateCcw className="mr-2 h-4 w-4" /> Cerrar</Button>
-                  </div>
+                <div className="mt-2 flex gap-2">
+                  <Button type="button" onClick={takePhoto}><Camera className="mr-2 h-4 w-4" /> Capturar</Button>
+                  <Button type="button" variant="outline" onClick={stopCamera}><RotateCcw className="mr-2 h-4 w-4" /> Cerrar</Button>
                 </div>
               ) : (
                 photos.length < MAX_PHOTOS && (
                   <div className="flex flex-wrap gap-2">
-                    <Button type="button" variant="outline" onClick={startCamera}>
-                      <Camera className="mr-2 h-4 w-4" /> Tomar selfie
+                    <Button type="button" variant="outline" onClick={() => startCamera("user")}>
+                      <Camera className="mr-2 h-4 w-4" /> Cámara frontal (selfie)
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => fileRef.current?.click()}>
-                      <ImagePlus className="mr-2 h-4 w-4" /> Subir / tomar fotos
+                    <Button type="button" variant="outline" onClick={() => startCamera("environment")}>
+                      <Camera className="mr-2 h-4 w-4" /> Cámara trasera
                     </Button>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => handleFiles(e.target.files)}
-                    />
                   </div>
                 )
               )}

@@ -11,6 +11,7 @@ import { HardHat, ClipboardCheck, AlertTriangle, Activity, Users2, Shield } from
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { BrandLogo } from "@/components/BrandLogo";
+import { WorkerAnimation } from "@/components/WorkerAnimation";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Acceso — SST Pro SG-SST" }] }),
@@ -104,6 +105,12 @@ function AuthPage() {
           <div className="absolute bottom-10 left-10 h-72 w-72 rounded-full bg-accent/5 blur-3xl animate-float-slow-rev" />
         </div>
 
+        {/* Friendly worker waving — hidden on small screens to save space */}
+        <div className="pointer-events-none hidden xl:block absolute bottom-6 right-6 opacity-90">
+          <WorkerAnimation size={180} />
+        </div>
+
+
         <div className="relative w-full max-w-md animate-fade-up">
           <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
             <div className="relative grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/30">
@@ -119,10 +126,6 @@ function AuthPage() {
           </div>
 
           <div className="relative mt-6 rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/10 overflow-hidden">
-            {/* shine sweep */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute -top-1/2 -bottom-1/2 w-1/3 bg-gradient-to-r from-transparent via-primary/10 to-transparent blur-md animate-shine" />
-            </div>
             <div className="relative">
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2">

@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck, Copy } from "lucide-react";
+import { Shield, LayoutDashboard, Building2, Users, ClipboardCheck, AlertTriangle, FileText, ShieldAlert, LogOut, BookOpen, HardHat, Stethoscope, UsersRound, Siren, ClipboardList, BarChart3, CheckSquare, FileBarChart, UserCheck, Copy, Settings } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";

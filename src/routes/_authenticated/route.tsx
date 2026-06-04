@@ -35,6 +35,7 @@ const adminNav: NavItem[] = [
   { to: "/indicadores", label: "Indicadores", icon: BarChart3 },
   { to: "/reportes", label: "Reportes", icon: FileBarChart },
   { to: "/documentos", label: "Documentos", icon: FileText },
+  { to: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
 // Simplified worker nav — only their workspace
@@ -45,6 +46,7 @@ const workerNav: NavItem[] = [
   { to: "/epp", label: "Mi EPP", icon: HardHat },
   { to: "/examenes", label: "Mis exámenes", icon: Stethoscope },
   { to: "/documentos", label: "Documentos", icon: FileText },
+  { to: "/configuracion", label: "Configuración", icon: Settings },
 ];
 
 // Routes a worker is NOT allowed to load

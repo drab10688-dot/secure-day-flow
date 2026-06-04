@@ -119,10 +119,6 @@ function AuthPage() {
           </div>
 
           <div className="relative mt-6 rounded-2xl border border-border bg-card p-6 shadow-xl shadow-primary/10 overflow-hidden">
-            {/* shine sweep */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-              <div className="absolute -top-1/2 -bottom-1/2 w-1/3 bg-gradient-to-r from-transparent via-primary/10 to-transparent blur-md animate-shine" />
-            </div>
             <div className="relative">
               <Tabs defaultValue="login">
                 <TabsList className="grid w-full grid-cols-2">

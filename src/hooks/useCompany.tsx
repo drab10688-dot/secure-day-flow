@@ -19,13 +19,14 @@ interface CompanyCtx {
   currentCompanyId: string | null;
   setCurrentCompanyId: (id: string | null) => void;
   currentRole: "admin" | "supervisor" | "worker" | null;
+  isSuperAdmin: boolean;
   loading: boolean;
   refetch: () => void;
 }
 
 const Ctx = createContext<CompanyCtx>({
   memberships: [], pendingMemberships: [], currentCompanyId: null, setCurrentCompanyId: () => {},
-  currentRole: null, loading: true, refetch: () => {},
+  currentRole: null, isSuperAdmin: false, loading: true, refetch: () => {},
 });
 
 export function CompanyProvider({ children }: { children: ReactNode }) {
@@ -33,6 +34,19 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [currentCompanyId, setCurrent] = useState<string | null>(
     typeof window !== "undefined" ? localStorage.getItem("currentCompanyId") : null
   );
+
+  const { data: isSuperAdmin } = useQuery({
+    queryKey: ["is-super-admin-ctx", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("super_admins" as any)
+        .select("user_id")
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return !!data;
+    },
+  });
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["memberships", user?.id],
@@ -66,10 +80,12 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     else localStorage.removeItem("currentCompanyId");
   };
 
-  const currentRole = memberships.find(m => m.company_id === currentCompanyId)?.role ?? null;
+  const membershipRole = memberships.find(m => m.company_id === currentCompanyId)?.role ?? null;
+  // Super admins always act as admin across the entire app
+  const currentRole = isSuperAdmin ? "admin" : membershipRole;
 
   return (
-    <Ctx.Provider value={{ memberships, pendingMemberships, currentCompanyId, setCurrentCompanyId, currentRole, loading: isLoading, refetch }}>
+    <Ctx.Provider value={{ memberships, pendingMemberships, currentCompanyId, setCurrentCompanyId, currentRole, isSuperAdmin: !!isSuperAdmin, loading: isLoading, refetch }}>
       {children}
     </Ctx.Provider>
   );

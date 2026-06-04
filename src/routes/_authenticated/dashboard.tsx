@@ -12,7 +12,16 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function Dashboard() {
   const { user } = useAuth();
-  const { currentCompanyId, memberships } = useCompany();
+  const { currentCompanyId, memberships, isSuperAdmin } = useCompany();
+
+  const { data: allCompaniesCount } = useQuery({
+    queryKey: ["all-companies-count", isSuperAdmin],
+    enabled: !!isSuperAdmin,
+    queryFn: async () => {
+      const { count } = await supabase.from("companies").select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
 
   const { data: stats } = useQuery({
     queryKey: ["stats", currentCompanyId],
@@ -36,7 +45,7 @@ function Dashboard() {
     },
   });
 
-  if (!memberships.length) {
+  if (!memberships.length && !isSuperAdmin) {
     return (
       <div className="rounded-xl border border-border bg-card p-10 text-center">
         <h2 className="text-lg font-semibold">Comienza creando una empresa</h2>
@@ -48,13 +57,15 @@ function Dashboard() {
     );
   }
 
+  const companiesCount = isSuperAdmin ? (allCompaniesCount ?? 0) : memberships.length;
+
   const items = [
     { label: "Trabajadores", value: stats?.workers ?? "—", icon: Users, to: "/trabajadores" as const },
     { label: "Jornadas hoy", value: stats?.shiftsToday ?? "—", icon: ClipboardCheck, to: "/jornada" as const },
     { label: "Incidentes", value: stats?.incidents ?? "—", icon: AlertTriangle, to: "/incidentes" as const },
     { label: "Riesgos identificados", value: stats?.risks ?? "—", icon: ShieldAlert, to: "/riesgos" as const },
     { label: "Documentos", value: stats?.documents ?? "—", icon: FileText, to: "/documentos" as const },
-    { label: "Empresas", value: memberships.length, icon: Building2, to: "/empresas" as const },
+    { label: "Empresas", value: companiesCount, icon: Building2, to: "/empresas" as const },
   ];
 
   return (

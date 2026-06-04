@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle2, Clock, Camera, MapPin, RotateCcw, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
+import { SignaturePad } from "@/components/SignaturePad";
 
 export const Route = createFileRoute("/_authenticated/jornada")({
   component: ShiftPage,
@@ -408,8 +409,8 @@ function ShiftPage() {
             </div>
 
             <div>
-              <Label>Firma (nombre completo) *</Label>
-              <Input required value={signature} onChange={(e) => setSignature(e.target.value)} placeholder="Tu nombre completo" />
+              <Label>Firma *</Label>
+              <SignaturePad value={signature} onChange={setSignature} />
             </div>
 
             <Button type="submit" className="w-full" disabled={submit.isPending}>

@@ -81,18 +81,18 @@ function AuthPage() {
         </div>
 
         <div className="relative z-10 text-xs text-white/60">
-          © {new Date().getFullYear()} SafeWork · Resolución 0312 de 2019
+          © {new Date().getFullYear()} SST Pro · Resolución 0312 de 2019
         </div>
       </div>
 
       {/* Right: Auth form */}
       <div className="flex items-center justify-center px-4 py-10 sm:px-8">
         <div className="w-full max-w-md">
-          <div className="mb-6 flex items-center justify-center gap-2 lg:hidden">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Shield className="h-5 w-5" />
+          <div className="mb-6 flex items-center justify-center gap-3 lg:hidden">
+            <div className="grid h-12 w-12 place-items-center rounded-xl bg-primary text-primary-foreground">
+              <BrandLogo size={30} tone="light" />
             </div>
-            <span className="text-xl font-semibold">SafeWork</span>
+            <span className="text-2xl font-bold tracking-tight">SST <span className="font-light italic text-primary">Pro</span></span>
           </div>
 
           <div className="space-y-1 text-center lg:text-left">
